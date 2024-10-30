@@ -60,6 +60,10 @@ Note that this project uses _package-inferred-system_.
 
 ## License
 
+This project is inspired by
+[Comamoca/nix-template](https://github.com/Comamoca/scaffold/tree/main/cl-nix),
+which is licensed under the CC0 1.0 Universal license.
+
 This projects is licensed under the following license:
 
 >
