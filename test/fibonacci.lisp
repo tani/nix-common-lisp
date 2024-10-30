@@ -1,6 +1,6 @@
 (defpackage #:fibonacci/test/fibonacci
-  (:use #:cl #:rove #:fibonacci/src/fibonacci))
+  (:use #:cl #:parachute #:fibonacci/src/fibonacci))
 (in-package #:fibonacci/test/fibonacci)
 
-(deftest fib-test
-  (ok (= (fib 10) 55)))
+(define-test fib-test
+  (is = (fib 10) 55))

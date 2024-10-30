@@ -20,9 +20,9 @@
       lispLib  = pkgs.sbcl.buildASDFSystem {
         inherit pname version;
         src = ./.;
-        systems = [pname];
+        systems = [pname "${pname}/test"];
         lispLibs = with pkgs.sbcl.pkgs; [
-          rove
+          parachute
         ];
       };
       lisp = pkgs.sbcl.withPackages (ps: [ lispLib ]);
