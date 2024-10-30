@@ -16,7 +16,7 @@
     perSystem = { pkgs, ... }:
     let
       pname = "fibonacci";
-      version = "0.1.0";
+      version = "0.0.0";
       lispLib  = pkgs.sbcl.buildASDFSystem {
         inherit pname version;
         src = ./.;
