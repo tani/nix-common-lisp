@@ -25,16 +25,17 @@
           parachute
         ];
       };
-      lisp = pkgs.sbcl.withPackages (ps: [ lispLib ]);
+      lispApp = pkgs.sbcl.withPackages (ps: [ lispLib ]);
       main = pkgs.writeShellScriptBin "${pname}-main" ''
-        ${lisp}/bin/sbcl --noinform --non-interactive --eval "(require :asdf)" --eval "(asdf:make :${pname})" --eval "(${pname}:main)"
+        ${lispApp}/bin/sbcl --noinform --non-interactive --eval "(require :asdf)" --eval "(asdf:make :${pname})" --eval "(${pname}:main)"
       '';
       test = pkgs.writeShellScriptBin "${pname}-test" ''
-        ${lisp}/bin/sbcl --noinform --non-interactive --eval "(require :asdf)" --eval "(asdf:test-system :${pname})"
+        ${lispApp}/bin/sbcl --noinform --non-interactive --eval "(require :asdf)" --eval "(asdf:test-system :${pname})"
        '';
     in {
+      packages.default = lispLib;
       devShells.default = pkgs.mkShell {
-        packages = [ pkgs.rlwrap lisp ];
+        packages = [ pkgs.rlwrap lispApp ];
       };
       apps = {
         default = {
