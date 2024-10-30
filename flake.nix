@@ -35,7 +35,7 @@
     in {
       packages.default = lispLib;
       devShells.default = pkgs.mkShell {
-        packages = [ pkgs.rlwrap lispApp ];
+        packages = [ lispApp ];
       };
       apps = {
         default = {

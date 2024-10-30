@@ -30,8 +30,7 @@ Thanks to [Shinmera](https://github.com/Shinmera) for this great library.
 You can run a REPL with the following command:
 
 ```sh
-nix develop
-sbcl # `rlwrap sbcl` for readline support
+nix develop -c sbcl
 ```
 
 To load the project, you can use the following code:
