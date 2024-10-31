@@ -1,5 +1,8 @@
 (defsystem #:fibonacci
   :class :package-inferred-system
+  :build-operation "program-op"
+  :build-pathname "fibonacci"
+  :entry-point "fibonacci:main"
   :depends-on (#:fibonacci/src/fibonacci)
   :in-order-to ((test-op (test-op #:fibonacci/test))))
 

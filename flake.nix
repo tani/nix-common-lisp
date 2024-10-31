@@ -16,34 +16,44 @@
       perSystem = {pkgs, ...}: let
         pname = "fibonacci";
         version = "0.0.0";
+        lispLibs = with pkgs.sbcl.pkgs; [
+          parachute
+        ];
         lispLib = pkgs.sbcl.buildASDFSystem {
-          inherit pname version;
+          inherit pname version lispLibs;
           src = ./.;
           systems = [pname "${pname}/test"];
-          lispLibs = with pkgs.sbcl.pkgs; [
-            parachute
-          ];
         };
-        lispApp = pkgs.sbcl.withPackages (ps: [lispLib]);
-        main = pkgs.writeShellScriptBin "${pname}-main" ''
-          ${lispApp}/bin/sbcl --noinform --non-interactive --eval "(require :asdf)" --eval "(asdf:make :${pname})" --eval "(${pname}:main)"
-        '';
-        test = pkgs.writeShellScriptBin "${pname}-test" ''
-          ${lispApp}/bin/sbcl --noinform --non-interactive --eval "(require :asdf)" --eval "(asdf:test-system :${pname})"
+        lispMainApp = pkgs.sbcl.withPackages (ps: lispLibs);
+        lispMainExe = pkgs.stdenv.mkDerivation {
+          inherit pname version;
+           src = ./.;
+           nativeBuildInputs = [ lispMainApp pkgs.makeWrapper ];
+      	   dontStrip = true;
+           buildPhase = ''
+             ${lispMainApp}/bin/sbcl --eval '(require :asdf)' --eval '(in-package :asdf)' --load "$src/${pname}.asd" --eval "(asdf:make :${pname})"
+           '';
+           installPhase = ''
+	           install -D ${pname} $out/bin/${pname}
+	         '';
+        };
+        lispTestApp = pkgs.sbcl.withPackages (ps: [lispLib]);
+        lispTestExe = pkgs.writeShellScriptBin "${pname}-test" ''
+          ${lispMainApp}/bin/sbcl --noinform --non-interactive --eval '(require :asdf)' --eval "(asdf:test-system :${pname})" "$@"
         '';
       in {
         packages.default = lispLib;
         devShells.default = pkgs.mkShell {
-          packages = [lispApp];
+          packages = [lispTestApp];
         };
         apps = {
           default = {
             type = "app";
-            program = main;
+            program = lispMainExe;
           };
           test = {
             type = "app";
-            program = test;
+            program = lispTestExe;
           };
         };
       };
