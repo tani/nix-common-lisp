@@ -27,22 +27,22 @@
         lispMainApp = pkgs.sbcl.withPackages (ps: lispLibs);
         lispMainExe = pkgs.stdenv.mkDerivation {
           inherit pname version;
-           src = ./.;
-           nativeBuildInputs = [ lispMainApp ];
-           dontStrip = true;
-           buildPhase = ''
-             export HOME=$TMPDIR
-             export CL_SOURCE_REGISTRY="$src"
-             export CL_BUILD_PATHNAME=`realpath -s --relative-to=$src $TMPDIR/${pname}`
-             ${lispMainApp}/bin/sbcl --noinform --non-interactive --eval "(require :asdf)" --eval "(asdf:make :${pname})"
-           '';
-           installPhase = ''
-             install -D $CL_BUILD_PATHNAME $out/bin/${pname}
-           '';
+          src = ./.;
+          nativeBuildInputs = [ lispMainApp ];
+          dontStrip = true;
+          buildPhase = ''
+            export HOME=$TMPDIR
+            export CL_SOURCE_REGISTRY="$src"
+            export CL_BUILD_PATHNAME=`realpath -s --relative-to=$src $TMPDIR/${pname}`
+            ${lispMainApp}/bin/sbcl --noinform --non-interactive --eval "(require :asdf)" --eval "(asdf:make :${pname})"
+          '';
+          installPhase = ''
+            install -D $CL_BUILD_PATHNAME $out/bin/${pname}
+          '';
         };
         lispTestApp = pkgs.sbcl.withPackages (ps: [lispMainLib]);
         lispTestExe = pkgs.writeShellScriptBin "${pname}-test" ''
-          ${lispTestApp}/bin/sbcl --noinform --non-interactive --eval "(require :asdf)" --eval "(asdf:test-system :${pname})" "$@"
+          ${lispTestApp}/bin/sbcl --noinform --non-interactive --eval "(require :asdf)" --eval "(asdf:test-system :${pname})"
         '';
       in {
         packages.default = lispMainLib;
