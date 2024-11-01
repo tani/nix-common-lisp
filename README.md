@@ -10,12 +10,12 @@ The entrypoint of this project is `main` function.
 You can run it with the following command:
 
 ```sh
-nix run .#sbcl
+nix run .#main-sbcl
 ```
 
-- `.#sbcl`: Run the entrypoint using SBCL.
-- `.#ecl`: Run the entrypoint using ECL.
-- `.#abcl`: Run the entrypoint using ABCL.
+- `.#main-sbcl`: Run the entrypoint using SBCL.
+- `.#main-ecl`: Run the entrypoint using ECL.
+- `.#main-abcl`: Run the entrypoint using ABCL.
 
 ### Run tests
 
