@@ -1,7 +1,7 @@
 (defsystem #:fibonacci
   :class package-inferred-system
   :build-operation program-op
-  :build-pathname #.(or (uiop:getenv "BUILD_PATHNAME") "fibonacci")
+  :build-pathname #.(or (uiop:getenv "CL_BUILD_PATHNAME") "fibonacci")
   :entry-point "fibonacci:main"
   :depends-on (#:fibonacci/src/fibonacci)
   :in-order-to ((test-op (test-op #:fibonacci/test))))

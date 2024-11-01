@@ -19,7 +19,7 @@
         lispLibs = with pkgs.sbcl.pkgs; [
           parachute
         ];
-        lispLib = pkgs.sbcl.buildASDFSystem {
+        lispMainLib = pkgs.sbcl.buildASDFSystem {
           inherit pname version lispLibs;
           src = ./.;
           systems = [pname "${pname}/test"];
@@ -28,23 +28,26 @@
         lispMainExe = pkgs.stdenv.mkDerivation {
           inherit pname version;
            src = ./.;
-           nativeBuildInputs = [ lispMainApp pkgs.makeWrapper ];
+           nativeBuildInputs = [ lispMainApp ];
       	   dontStrip = true;
            buildPhase = ''
-             BUILD_PATHNAME=../../..$TMPDIR/${pname} HOME=$TMPDIR CL_SOURCE_REGISTRY="$src" ${lispMainApp}/bin/sbcl --noinform --non-interactive --eval "(require :asdf)" --eval "(asdf:make :${pname})"
+             export HOME=$TMPDIR
+             export CL_SOURCE_REGISTRY="$src"
+             export CL_BUILD_PATHNAME=`realpath -s --relative-to=$src $TMPDIR/${pname}`
+             ${lispMainApp}/bin/sbcl --noinform --non-interactive --eval "(require :asdf)" --eval "(asdf:make :${pname})"
            '';
            installPhase = ''
-	           install -D ../../..$TMPDIR/${pname} $out/bin/${pname}
+	           install -D $CL_BUILD_PATHNAME $out/bin/${pname}
 	         '';
         };
-        lispTestApp = pkgs.sbcl.withPackages (ps: [lispLib]);
+        lispTestApp = pkgs.sbcl.withPackages (ps: [lispMainLib]);
         lispTestExe = pkgs.writeShellScriptBin "${pname}-test" ''
-          ${lispMainApp}/bin/sbcl --noinform --non-interactive --eval "(require :asdf)" --eval "(asdf:test-system :${pname})" "$@"
+          ${lispTestApp}/bin/sbcl --noinform --non-interactive --eval "(require :asdf)" --eval "(asdf:test-system :${pname})" "$@"
         '';
       in {
-        packages.default = lispLib;
+        packages.default = lispMainLib;
         devShells.default = pkgs.mkShell {
-          packages = [lispTestApp];
+          packages = [lispTestApp lispMainExe];
         };
         apps = {
           default = {
