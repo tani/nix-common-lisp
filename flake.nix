@@ -34,6 +34,7 @@
         mainExe = let app = pkgs.sbcl.withPackages (ps: lispLibs); in
           pkgs.stdenv.mkDerivation {
             inherit pname version src;
+            meta.mainProgram = pname;
             nativeBuildInputs = [app];
             dontStrip = true;
             buildPhase = ''
