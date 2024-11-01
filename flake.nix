@@ -85,6 +85,9 @@
           (pkgs.abcl.withPackages (ps: abcl.lispLibs))
           (pkgs.ecl.withPackages (ps: ecl.lispLibs))
         ];
+        shellHook = ''
+          export CL_SOURCE_REGISTRY=$PWD
+        '';
       };
       packages =
         (packages "sbcl" sbcl)
