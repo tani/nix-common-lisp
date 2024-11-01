@@ -81,11 +81,15 @@
     in {
       devShells.default = pkgs.mkShell {
         packages = [
+          pkgs.rlwrap
           (pkgs.sbcl.withPackages (ps: sbcl.lispLibs))
           (pkgs.abcl.withPackages (ps: abcl.lispLibs))
           (pkgs.ecl.withPackages (ps: ecl.lispLibs))
         ];
         shellHook = ''
+          alias sbcl="rlwrap -c sbcl"
+          alias abcl="rlwrap -c abcl"
+          alias ecl="rlwrap -c ecl"
           export CL_SOURCE_REGISTRY=$PWD
         '';
       };
