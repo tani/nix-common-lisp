@@ -81,7 +81,6 @@
     in {
       devShells.default = pkgs.mkShell {
         packages = [
-          pkgs.rlwrap
           (pkgs.sbcl.withPackages (ps: sbcl.lispLibs))
           (pkgs.abcl.withPackages (ps: abcl.lispLibs))
           (pkgs.ecl.withPackages (ps: ecl.lispLibs))
