@@ -31,15 +31,15 @@
            nativeBuildInputs = [ lispMainApp pkgs.makeWrapper ];
       	   dontStrip = true;
            buildPhase = ''
-             ${lispMainApp}/bin/sbcl --eval '(require :asdf)' --eval '(in-package :asdf)' --load "$src/${pname}.asd" --eval "(asdf:make :${pname})"
+             BUILD_PATHNAME=../../..$TMPDIR/${pname} HOME=$TMPDIR CL_SOURCE_REGISTRY="$src" ${lispMainApp}/bin/sbcl --noinform --non-interactive --eval "(require :asdf)" --eval "(asdf:make :${pname})"
            '';
            installPhase = ''
-	           install -D ${pname} $out/bin/${pname}
+	           install -D ../../..$TMPDIR/${pname} $out/bin/${pname}
 	         '';
         };
         lispTestApp = pkgs.sbcl.withPackages (ps: [lispLib]);
         lispTestExe = pkgs.writeShellScriptBin "${pname}-test" ''
-          ${lispMainApp}/bin/sbcl --noinform --non-interactive --eval '(require :asdf)' --eval "(asdf:test-system :${pname})" "$@"
+          ${lispMainApp}/bin/sbcl --noinform --non-interactive --eval "(require :asdf)" --eval "(asdf:test-system :${pname})" "$@"
         '';
       in {
         packages.default = lispLib;
