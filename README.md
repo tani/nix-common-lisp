@@ -13,6 +13,11 @@ You can run it with the following command:
 nix run
 ```
 
+- `.#`: Run the entrypoint using SBCL.
+- `.#sbcl`: Run the entrypoint using SBCL.
+- `.#ecl`: Run the entrypoint using ECL.
+- `.#abcl`: Run the entrypoint using ABCL.
+
 ### Run tests
 
 The tests of this project are located in the `test` directory.
@@ -24,6 +29,12 @@ nix run .#test
 
 We use [Parachute](https://github.com/Shinmera/parachute) for testing.
 Thanks to [Shinmera](https://github.com/Shinmera) for this great library.
+
+- `.#test`: Run all tests using SBCL.
+- `.#test-sbcl`: Run all tests using SBCL.
+- `.#test-ecl`: Run all tests using ECL.
+- `.#test-abcl`: Run all tests using ABCL.
+
 
 ### Run REPL
 
@@ -40,6 +51,14 @@ To load the project, you can use the following code:
 (load (uiop:getenv "ASDF"))
 (require :fibonacci)
 ```
+
+### Use library
+
+This project exports the following libraries:
+
+- `packages.lib-sbcl`: library for SBCL.
+- `packages.lib-ecl`: library for ECL.
+- `packages.lib-abcl`: library for SBCL.
 
 ## Development
 
