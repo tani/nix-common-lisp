@@ -29,7 +29,7 @@
           inherit pname version;
            src = ./.;
            nativeBuildInputs = [ lispMainApp ];
-      	   dontStrip = true;
+           dontStrip = true;
            buildPhase = ''
              export HOME=$TMPDIR
              export CL_SOURCE_REGISTRY="$src"
@@ -37,8 +37,8 @@
              ${lispMainApp}/bin/sbcl --noinform --non-interactive --eval "(require :asdf)" --eval "(asdf:make :${pname})"
            '';
            installPhase = ''
-	           install -D $CL_BUILD_PATHNAME $out/bin/${pname}
-	         '';
+             install -D $CL_BUILD_PATHNAME $out/bin/${pname}
+           '';
         };
         lispTestApp = pkgs.sbcl.withPackages (ps: [lispMainLib]);
         lispTestExe = pkgs.writeShellScriptBin "${pname}-test" ''
