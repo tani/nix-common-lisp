@@ -10,7 +10,7 @@ The entrypoint of this project is `main` function.
 You can run it with the following command:
 
 ```sh
-nix run
+nix run .#sbcl
 ```
 
 - `.#sbcl`: Run the entrypoint using SBCL.
@@ -23,7 +23,7 @@ The tests of this project are located in the `test` directory.
 You can run them with the following command:
 
 ```sh
-nix run .#test
+nix run .#test-sbcl
 ```
 
 We use [Parachute](https://github.com/Shinmera/parachute) for testing.
@@ -39,7 +39,7 @@ Thanks to [Shinmera](https://github.com/Shinmera) for this great library.
 You can run a REPL with the following command:
 
 ```sh
-nix develop -c sbcl
+nix develop -c sbcl # ecl or abcl
 ```
 
 To load the project, you can use the following code:
@@ -56,7 +56,7 @@ This project exports the following libraries:
 
 - `packages.lib-sbcl`: library for SBCL.
 - `packages.lib-ecl`: library for ECL.
-- `packages.lib-abcl`: library for SBCL.
+- `packages.lib-abcl`: library for ABCL.
 
 ## Development
 

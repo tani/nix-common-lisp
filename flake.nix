@@ -14,13 +14,20 @@
   flake-parts.lib.mkFlake { inherit inputs; } {
     systems = import systems;
     perSystem = { pkgs, ... }: let
+      ############ Settings ############
+      ## Project name
       pname = "fibonacci";
+      ## Project version
       version = "0.0.0";
+      ## Source directory
       src = ./.;
+      ## Exported systems
       systems = [pname "${pname}/test"];
+      ## Dependencies
       mkLispLibs = lisp: with lisp.pkgs; [
         parachute
       ];
+      ##################################
       sbcl = rec {
         lispLibs = mkLispLibs pkgs.sbcl;
         mainLib = pkgs.sbcl.buildASDFSystem { inherit pname version src systems lispLibs; };
