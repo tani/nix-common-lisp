@@ -66,7 +66,7 @@
           pkgs.writeShellScriptBin "${pname}-test" ''${app}/bin/ecl --eval "(require :asdf)" --eval "(asdf:test-system :${pname})" --eval "(quit)"'';
       };
       apps = lisp: pkg: {
-        ${lisp} = {
+        ${"main-" + lisp} = {
           type = "app";
           program = pkg.mainExe;
         };
@@ -81,9 +81,9 @@
     in {
       devShells.default = pkgs.mkShell {
         packages = [
-          pkgs.sbcl.withPackages(ps: sbcl.lispLibs)
-          pkgs.abcl.withPackages(ps: abcl.lispLibs)
-          pkgs.ecl.withPackages(ps: ecl.lispLibs)
+          (pkgs.sbcl.withPackages (ps: sbcl.lispLibs))
+          (pkgs.abcl.withPackages (ps: abcl.lispLibs))
+          (pkgs.ecl.withPackages (ps: ecl.lispLibs))
         ];
       };
       packages =
