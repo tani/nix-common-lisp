@@ -10,7 +10,20 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        lisp:
+          - ecl
+          - sbcl
+          - abcl
+        os:
+          - ubuntu-latest
+          - macos-latest
+
+    name: Test on ${{ matrix.os }} with ${{ matrix.lisp }}
+
+    runs-on: ${{ matrix.os }}
 
     steps:
       - name: Checkout repository
@@ -22,5 +35,5 @@ jobs:
           nix_path: nixpkgs=channel:nixos-unstable
 
       - name: Run Nix Test
-        run: nix run .#test
+        run: nix run .#test-${{ matrix.lisp }}
 

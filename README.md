@@ -13,7 +13,6 @@ You can run it with the following command:
 nix run
 ```
 
-- `.#`: Run the entrypoint using SBCL.
 - `.#sbcl`: Run the entrypoint using SBCL.
 - `.#ecl`: Run the entrypoint using ECL.
 - `.#abcl`: Run the entrypoint using ABCL.
@@ -30,7 +29,6 @@ nix run .#test
 We use [Parachute](https://github.com/Shinmera/parachute) for testing.
 Thanks to [Shinmera](https://github.com/Shinmera) for this great library.
 
-- `.#test`: Run all tests using SBCL.
 - `.#test-sbcl`: Run all tests using SBCL.
 - `.#test-ecl`: Run all tests using ECL.
 - `.#test-abcl`: Run all tests using ABCL.
