@@ -35,9 +35,8 @@
       sbcl = rec {
         lispLibs = mkLispLibs pkgs.sbcl;
         mainLib = pkgs.sbcl.buildASDFSystem { inherit pname version src systems lispLibs nativeLibs; };
-        mainExe = let
-          app = pkgs.sbcl.withPackages (ps: lispLibs);
-          bin = pkgs.stdenv.mkDerivation {
+        mainExe = let app = pkgs.sbcl.withPackages (ps: lispLibs); in
+          pkgs.stdenv.mkDerivation {
             inherit pname version src;
             meta.mainProgram = pname;
             nativeBuildInputs = [app];
@@ -45,19 +44,20 @@
             buildPhase = ''
               export HOME=$TMPDIR
               export CL_SOURCE_REGISTRY=$src
-              export CL_BUILD_PATHNAME=`realpath -s --relative-to=$src $TMPDIR/${pname}`
+              export CL_BUILD_PATHNAME=`realpath -s --relative-to=$src $TMPDIR/${pname}_raw`
               export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
               ${app}/bin/sbcl --noinform --non-interactive --eval "(require :asdf)" --eval "(asdf:make :${pname})"
             '';
             installPhase = ''
-              install -D $CL_BUILD_PATHNAME $out/bin/${pname}
+              install -D $CL_BUILD_PATHNAME $out/bin/${pname}_raw
+              cat > $out/bin/${pname} <<-EOF
+                #!/bin/sh
+                export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
+                exec $out/bin/${pname}_raw "\$@"
+              EOF
+              chmod +x $out/bin/${pname}
             '';
           };
-        in
-          pkgs.writeShellScriptBin pname ''
-            export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
-            ${bin}/bin/${pname} "$@"
-          '';
         testExe = let app = pkgs.sbcl.withPackages (ps: [mainLib]); in
           pkgs.writeShellScriptBin "${pname}-test" ''
             export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
