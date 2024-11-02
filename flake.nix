@@ -5,12 +5,7 @@
     flake-parts.url = "github:hercules-ci/flake-parts";
     systems.url = "github:nix-systems/default";
   };
-  outputs = inputs @ {
-    self,
-    nixpkgs,
-    flake-parts,
-    systems,
-  }:
+  outputs = inputs @ { self, nixpkgs, flake-parts, systems }:
   flake-parts.lib.mkFlake { inherit inputs; } {
     systems = import systems;
     perSystem = { pkgs, ... }: let
@@ -38,13 +33,13 @@
       ];
       ##################################
       LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath nativeLibs;
-      lisp = {
+      recipe = {
         sbcl = rec {
           mainLib = pkgs.sbcl.buildASDFSystem {
             inherit pname version src systems nativeLibs;
             lispLibs = lispLibs pkgs.sbcl;
           };
-          mainExe = let app = pkgs.sbcl.withPackages (ps: lispLibs); in
+          mainExe = let app = pkgs.sbcl.withPackages (ps: lispLibs pkgs.sbcl); in
             pkgs.stdenv.mkDerivation {
               inherit pname version src;
               meta.mainProgram = pname;
@@ -107,13 +102,11 @@
         };
       };
       apps =  impl: [
-        { name = "main-" + impl; value = { type = "app"; program = lisp.${impl}.mainExe; }; }
-        { name = "test-" + impl; value = { type = "app"; program = lisp.${impl}.testExe; }; }
+        { name = "main-" + impl; value = { type = "app"; program = recipe.${impl}.mainExe; }; }
+        { name = "test-" + impl; value = { type = "app"; program = recipe.${impl}.testExe; }; }
       ];
-      packages = impl:
-        { name = "lib-" + impl; value = lisp.${impl}.mainLib; };
-      devPackages = impl:
-        pkgs.${impl}.withPackages (ps: [lisp.${impl}.mainLib]);
+      packages = impl: { name = "lib-" + impl; value = recipe.${impl}.mainLib; };
+      devPackages = impl: pkgs.${impl}.withPackages (ps: [recipe.${impl}.mainLib]);
     in {
       devShells.default = pkgs.mkShell {
         inherit LD_LIBRARY_PATH;
