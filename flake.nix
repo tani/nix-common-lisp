@@ -27,10 +27,13 @@
       mkLispLibs = lisp: with lisp.pkgs; [
         parachute
       ];
+      ## Non-Lisp dependencies
+      nativeLibs = with pkgs; [
+      ];
       ##################################
       sbcl = rec {
         lispLibs = mkLispLibs pkgs.sbcl;
-        mainLib = pkgs.sbcl.buildASDFSystem { inherit pname version src systems lispLibs; };
+        mainLib = pkgs.sbcl.buildASDFSystem { inherit pname version src systems lispLibs nativeLibs; };
         mainExe = let app = pkgs.sbcl.withPackages (ps: lispLibs); in
           pkgs.stdenv.mkDerivation {
             inherit pname version src;
@@ -39,7 +42,7 @@
             dontStrip = true;
             buildPhase = ''
               export HOME=$TMPDIR
-              export CL_SOURCE_REGISTRY="$src"
+              export CL_SOURCE_REGISTRY=$src
               export CL_BUILD_PATHNAME=`realpath -s --relative-to=$src $TMPDIR/${pname}`
               ${app}/bin/sbcl --noinform --non-interactive --eval "(require :asdf)" --eval "(asdf:make :${pname})"
             '';
@@ -52,7 +55,7 @@
       };
       abcl = rec {
         lispLibs = mkLispLibs pkgs.abcl;
-        mainLib = pkgs.abcl.buildASDFSystem { inherit pname version src systems lispLibs; };
+        mainLib = pkgs.abcl.buildASDFSystem { inherit pname version src systems lispLibs nativeLibs; };
         mainExe = let app = pkgs.abcl.withPackages (ps: [mainLib]); in
           pkgs.writeShellScriptBin pname ''${app}/bin/abcl --noinform --eval "(require :asdf)" --eval "(asdf:load-system :${pname})" --eval "(${pname}:main)" --eval "(quit)"'';
         testExe = let app = pkgs.abcl.withPackages (ps: [mainLib]); in
@@ -60,7 +63,7 @@
       };
       ecl = rec {
         lispLibs = mkLispLibs pkgs.ecl;
-        mainLib = pkgs.ecl.buildASDFSystem { inherit pname version src systems lispLibs; };
+        mainLib = pkgs.ecl.buildASDFSystem { inherit pname version src systems lispLibs nativeLibs; };
         mainExe = let app = pkgs.ecl.withPackages (ps: [mainLib]); in
           pkgs.writeShellScriptBin pname ''${app}/bin/ecl --eval "(require :asdf)" --eval "(asdf:load-system :${pname})" --eval "(${pname}:main)" --eval "(quit)"'';
         testExe = let app = pkgs.ecl.withPackages (ps: [mainLib]); in
@@ -79,16 +82,21 @@
       packages = lisp: pkg: {
         ${"lib-" + lisp} = pkg.mainLib;
       };
+      devPackages = lisp: pkg:
+        pkgs.${lisp}.withPackages (ps: [pkg.mainLib]);
     in {
       devShells.default = pkgs.mkShell {
-        packages = [
-          (pkgs.sbcl.withPackages (ps: sbcl.lispLibs))
-          (pkgs.abcl.withPackages (ps: abcl.lispLibs))
-          (pkgs.ecl.withPackages (ps: ecl.lispLibs))
-        ];
+        LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath nativeLibs;
         shellHook = ''
+          ## Add the current directory to the CL_SOURCE_REGISTRY
+          ## so that the Lisp implementation can find the source files
           export CL_SOURCE_REGISTRY=$PWD
         '';
+        packages = [
+          (devPackages "sbcl" sbcl)
+          (devPackages "abcl" abcl)
+          (devPackages "ecl" ecl)
+        ];
       };
       packages =
         (packages "sbcl" sbcl)
