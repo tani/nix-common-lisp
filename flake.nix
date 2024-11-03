@@ -38,7 +38,7 @@
         "clasp-common-lisp"
       ];
       ##################################
-      isAvailable = impl: builtins.elem system pkgs.${impl}.meta.platforms;
+      isAvailable = impl: (builtins.elem system pkgs.${impl}.meta.platforms) && (!pkgs.${impl}.meta.broken);
       availableLispImpls = builtins.filter isAvailable lispImpls;
       LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath nativeLibs;
       recipe = {
