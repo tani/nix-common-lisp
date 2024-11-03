@@ -17,6 +17,8 @@ jobs:
         exclude:
           - os: macos-latest
             lisp: ccl
+          - os: macos-latest
+            lisp: mkcl
 
     name: Test on ${{ matrix.os }} with ${{ matrix.lisp }}
 
