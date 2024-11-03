@@ -71,7 +71,7 @@
           testExe = let app = pkgs.sbcl.withPackages (ps: [mainLib]); in
             pkgs.writeShellScriptBin "${pname}-test" ''
               export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
-              ${app}/bin/sbcl --noinform --non-interactive --eval "(require :asdf)" --eval "(asdf:test-system :${pname})"
+              exec ${app}/bin/sbcl --noinform --non-interactive --eval "(require :asdf)" --eval "(asdf:test-system :${pname})"
             '';
         };
         abcl = rec {
@@ -82,12 +82,12 @@
           mainExe = let app = pkgs.abcl.withPackages (ps: [mainLib]); in
             pkgs.writeShellScriptBin pname ''
               export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
-              ${app}/bin/abcl --noinform --eval "(require :asdf)" --eval "(asdf:load-system :${pname})" --eval "(${pname}:main)" --eval "(quit)" -- "$@"
+              exec ${app}/bin/abcl --noinform --eval "(require :asdf)" --eval "(asdf:load-system :${pname})" --eval "(${pname}:main)" --eval "(quit)" -- "$@"
             '';
           testExe = let app = pkgs.abcl.withPackages (ps: [mainLib]); in
             pkgs.writeShellScriptBin "${pname}-test" ''
               export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
-              ${app}/bin/abcl --noinform --eval "(require :asdf)" --eval "(asdf:test-system :${pname})" --eval "(quit)"
+              exec ${app}/bin/abcl --noinform --eval "(require :asdf)" --eval "(asdf:test-system :${pname})" --eval "(quit)"
             '';
         };
         ecl = rec {
@@ -98,12 +98,12 @@
           mainExe = let app = pkgs.ecl.withPackages (ps: [mainLib]); in
             pkgs.writeShellScriptBin pname ''
               export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
-              ${app}/bin/ecl --eval "(require :asdf)" --eval "(asdf:load-system :${pname})" --eval "(${pname}:main)" --eval "(quit)" -- "$@"
+              exec ${app}/bin/ecl --eval "(require :asdf)" --eval "(asdf:load-system :${pname})" --eval "(${pname}:main)" --eval "(quit)" -- "$@"
             '';
           testExe = let app = pkgs.ecl.withPackages (ps: [mainLib]); in
             pkgs.writeShellScriptBin "${pname}-test" ''
               export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
-              ${app}/bin/ecl --eval "(require :asdf)" --eval "(asdf:test-system :${pname})" --eval "(quit)"
+              exec ${app}/bin/ecl --eval "(require :asdf)" --eval "(asdf:test-system :${pname})" --eval "(quit)"
             '';
         };
         ccl = rec {
@@ -114,12 +114,12 @@
           mainExe = let app = pkgs.ccl.withPackages (ps: [mainLib]); in
             pkgs.writeShellScriptBin pname ''
               export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
-              ${app}/bin/ccl --quiet --eval "(require :asdf)" --eval "(asdf:load-system :${pname})" --eval "(${pname}:main)" --eval "(quit)" -- "$@"
+              exec ${app}/bin/ccl --quiet --eval "(require :asdf)" --eval "(asdf:load-system :${pname})" --eval "(${pname}:main)" --eval "(quit)" -- "$@"
             '';
           testExe = let app = pkgs.ccl.withPackages (ps: [mainLib]); in
             pkgs.writeShellScriptBin "${pname}-test" ''
               export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
-              ${app}/bin/ccl --quiet --eval "(require :asdf)" --eval "(asdf:test-system :${pname})" --eval "(quit)"
+              exec ${app}/bin/ccl --quiet --eval "(require :asdf)" --eval "(asdf:test-system :${pname})" --eval "(quit)"
             '';
         };
       };
