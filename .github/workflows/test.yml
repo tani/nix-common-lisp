@@ -10,18 +10,20 @@ on:
 
 jobs:
   test:
-
     strategy:
       matrix:
         lisp:
           - ecl
           - sbcl
           - abcl
+          - ccl
         os:
           - ubuntu-latest
           - macos-latest
 
     name: Test on ${{ matrix.os }} with ${{ matrix.lisp }}
+
+    if: !(matrix.os == 'macos-latest' && matrix.lisp == 'ccl')
 
     runs-on: ${{ matrix.os }}
 
@@ -36,4 +38,3 @@ jobs:
 
       - name: Run Nix Test
         run: nix run .#test-${{ matrix.lisp }}
-

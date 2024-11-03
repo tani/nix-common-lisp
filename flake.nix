@@ -8,7 +8,7 @@
   outputs = inputs @ { self, nixpkgs, flake-parts, systems }:
   flake-parts.lib.mkFlake { inherit inputs; } {
     systems = import systems;
-    perSystem = { pkgs, ... }: let
+    perSystem = { pkgs, system, ... }: let
       ############ Settings ############
       ## Project name
       pname = "fibonacci";
@@ -17,7 +17,10 @@
       ## Source directory
       src = ./.;
       ## Exported systems
-      systems = [pname "${pname}/test"];
+      systems = [
+        pname
+        "${pname}/test"
+      ];
       ## Dependencies
       lispLibs = lisp: with lisp.pkgs; [
         parachute
@@ -27,11 +30,14 @@
       ];
       ## Supported Lisp implementations
       lispImpls = [
-        "sbcl"
         "abcl"
+        "sbcl"
         "ecl"
+        "ccl"
       ];
       ##################################
+      isAvailable = impl: builtins.hasAttr impl nixpkgs.legacyPackages.${system};
+      availableLispImpls = builtins.filter isAvailable lispImpls;
       LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath nativeLibs;
       recipe = {
         sbcl = rec {
@@ -100,6 +106,22 @@
               ${app}/bin/ecl --eval "(require :asdf)" --eval "(asdf:test-system :${pname})" --eval "(quit)"
             '';
         };
+        ccl = rec {
+          mainLib = pkgs.ccl.buildASDFSystem {
+            inherit pname version src systems nativeLibs;
+            lispLibs = lispLibs pkgs.ccl;
+          };
+          mainExe = let app = pkgs.ccl.withPackages (ps: [mainLib]); in
+            pkgs.writeShellScriptBin pname ''
+              export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
+              ${app}/bin/ccl --quiet --eval "(require :asdf)" --eval "(asdf:load-system :${pname})" --eval "(${pname}:main)" --eval "(quit)" -- "$@"
+            '';
+          testExe = let app = pkgs.ccl.withPackages (ps: [mainLib]); in
+            pkgs.writeShellScriptBin "${pname}-test" ''
+              export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
+              ${app}/bin/ccl --quiet --eval "(require :asdf)" --eval "(asdf:test-system :${pname})" --eval "(quit)"
+            '';
+        };
       };
       apps =  impl: [
         { name = "main-" + impl; value = { type = "app"; program = recipe.${impl}.mainExe; }; }
@@ -111,10 +133,10 @@
       devShells.default = pkgs.mkShell {
         inherit LD_LIBRARY_PATH;
         shellHook = ''export CL_SOURCE_REGISTRY=$PWD'';
-        packages = builtins.map devPackages lispImpls;
+        packages = builtins.map devPackages availableLispImpls;
       };
-      packages = builtins.listToAttrs (builtins.map packages lispImpls);
-      apps = builtins.listToAttrs (builtins.concatMap apps lispImpls);
+      packages = builtins.listToAttrs (builtins.map packages availableLispImpls);
+      apps = builtins.listToAttrs (builtins.concatMap apps availableLispImpls);
     };
   };
 }
