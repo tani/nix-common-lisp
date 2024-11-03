@@ -10,5 +10,7 @@
     (+ (fib (- n 2)) (fib (- n 1)))))
 
 (defun main ()
-  (format t "fib(10) = ~a~%" (fib 10))
-  (uiop:quit 0))
+  (format t "args: ~{~a~^ ~}~%" uiop:*command-line-arguments*)
+  (let ((n (parse-integer (first uiop:*command-line-arguments*))))
+    (format t "fib(~a) = ~a~%" n (fib n))
+    (uiop:quit 0)))
