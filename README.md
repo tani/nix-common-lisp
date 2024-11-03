@@ -16,6 +16,7 @@ nix run .#main-sbcl
 - `.#main-sbcl`: Run the entrypoint using SBCL.
 - `.#main-ecl`: Run the entrypoint using ECL.
 - `.#main-abcl`: Run the entrypoint using ABCL.
+- `.#main-ccl`: Run the entrypoint using CCL.
 
 ### Run tests
 
@@ -32,14 +33,14 @@ Thanks to [Shinmera](https://github.com/Shinmera) for this great library.
 - `.#test-sbcl`: Run all tests using SBCL.
 - `.#test-ecl`: Run all tests using ECL.
 - `.#test-abcl`: Run all tests using ABCL.
-
+- `.#test-ccl`: Run all tests using CCL.
 
 ### Run REPL
 
 You can run a REPL with the following command:
 
 ```sh
-nix develop -c sbcl # ecl or abcl
+nix develop -c sbcl # ecl, abcl, or ccl
 ```
 
 To load the project, you can use the following code:
@@ -57,6 +58,7 @@ This project exports the following libraries:
 - `packages.lib-sbcl`: library for SBCL.
 - `packages.lib-ecl`: library for ECL.
 - `packages.lib-abcl`: library for ABCL.
+- `packages.lib-ccl`: library for CCL.
 
 ## Development
 
