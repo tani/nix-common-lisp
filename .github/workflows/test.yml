@@ -12,7 +12,7 @@ jobs:
   test:
     strategy:
       matrix:
-        lisp: [ecl, sbcl, abcl, ccl]
+        lisp: [ecl, sbcl, abcl, ccl, mkcl]
         os: [ubuntu-latest, macos-latest]
         exclude:
           - os: macos-latest
