@@ -21,8 +21,6 @@ jobs:
             lisp: mkcl
           - os: macos-latest
             lisp: clasp-common-lisp
-          - os: macos-latest
-            lisp: clisp
 
     name: Test on ${{ matrix.os }} with ${{ matrix.lisp }}
 
