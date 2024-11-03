@@ -63,7 +63,7 @@
                 cat > $out/bin/${pname} <<-EOF
                   #!/bin/sh
                   export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
-                  exec $out/bin/${pname}_raw "\$@"
+                  exec $out/bin/${pname}_raw -- "\$@"
                 EOF
                 chmod +x $out/bin/${pname}
               '';
