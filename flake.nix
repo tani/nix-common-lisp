@@ -131,10 +131,6 @@
               chmod +x $out/bin/${pname}
             '';
           };
-          #mainExe = pkgs.writeShellScriptBin pname ''
-          #  export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
-          #  exec ${lisp}/bin/clisp --quiet -x '(require "asdf")' -x "(asdf:load-system :${pname})" -x "(${pname}:main)" -x "(quit)" -- "$@"
-          #'';
           testExe = pkgs.writeShellScriptBin "${pname}-test" ''
             export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
             exec ${lisp}/bin/clisp --quiet -x '(require "asdf")' -x "(asdf:test-system :${pname})" -x "(quit)"
