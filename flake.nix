@@ -36,7 +36,7 @@
         "ccl"
       ];
       ##################################
-      isAvailable = impl: builtins.hasAttr impl nixpkgs.legacyPackages.${system};
+      isAvailable = impl: builtins.elem system pkgs.${impl}.meta.platforms;
       availableLispImpls = builtins.filter isAvailable lispImpls;
       LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath nativeLibs;
       recipe = {
