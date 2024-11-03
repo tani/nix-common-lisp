@@ -10,4 +10,5 @@
     (+ (fib (- n 2)) (fib (- n 1)))))
 
 (defun main ()
-  (format t "fib(10) = ~a~%" (fib 10)))
+  (format t "fib(10) = ~a~%" (fib 10))
+  (uiop:quit 0))

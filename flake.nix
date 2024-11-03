@@ -111,13 +111,33 @@
             lispLibs = lispLibs pkgs.clisp;
           };
           lisp = pkgs.clisp.withPackages (ps: [mainLib]);
-          mainExe = pkgs.writeShellScriptBin pname ''
-            export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
-            exec ${lisp}/bin/clisp --quiet -x "(require :asdf)" -x "(asdf:load-system :${pname})" -x "(${pname}:main)" -x "(quit)" -- "$@"
-          '';
+          mainExe = pkgs.stdenv.mkDerivation {
+            inherit pname version src;
+            meta.mainProgram = pname;
+            dontStrip = true;
+            buildPhase = ''
+              export HOME=$TMPDIR
+              export CL_BUILD_PATHNAME=`realpath -s --relative-to=$src $TMPDIR/${pname}_raw`
+              export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
+              ${lisp}/bin/clisp --quiet -x '(require "asdf")' -x "(asdf:make :${pname})"
+            '';
+            installPhase = ''
+              install -D $CL_BUILD_PATHNAME $out/bin/${pname}_raw
+              cat > $out/bin/${pname} <<-EOF
+                #!/bin/sh
+                export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
+                exec $out/bin/${pname}_raw -- "\$@"
+              EOF
+              chmod +x $out/bin/${pname}
+            '';
+          };
+          #mainExe = pkgs.writeShellScriptBin pname ''
+          #  export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
+          #  exec ${lisp}/bin/clisp --quiet -x '(require "asdf")' -x "(asdf:load-system :${pname})" -x "(${pname}:main)" -x "(quit)" -- "$@"
+          #'';
           testExe = pkgs.writeShellScriptBin "${pname}-test" ''
             export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
-            exec ${lisp}/bin/clisp --quiet -x "(require :asdf)" -x "(asdf:test-system :${pname})" -x "(quit)"
+            exec ${lisp}/bin/clisp --quiet -x '(require "asdf")' -x "(asdf:test-system :${pname})" -x "(quit)"
           '';
         };
         abcl = rec {
