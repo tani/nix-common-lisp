@@ -17,6 +17,7 @@ nix run .#main-sbcl
 - `.#main-ecl`: Run the entrypoint using ECL.
 - `.#main-abcl`: Run the entrypoint using ABCL.
 - `.#main-ccl`: Run the entrypoint using CCL.
+- `.#main-mkcl`: Run the entrypoint using MKCL.
 
 ### Run tests
 
@@ -27,20 +28,20 @@ You can run them with the following command:
 nix run .#test-sbcl
 ```
 
-We use [Parachute](https://github.com/Shinmera/parachute) for testing.
-Thanks to [Shinmera](https://github.com/Shinmera) for this great library.
+We use [FiveAM](https://github.com/lispci/fiveam) for testing.
 
 - `.#test-sbcl`: Run all tests using SBCL.
 - `.#test-ecl`: Run all tests using ECL.
 - `.#test-abcl`: Run all tests using ABCL.
 - `.#test-ccl`: Run all tests using CCL.
+- `.#test-mkcl`: Run all tests using MKCL.
 
 ### Run REPL
 
 You can run a REPL with the following command:
 
 ```sh
-nix develop -c sbcl # ecl, abcl, or ccl
+nix develop -c sbcl # ecl, abcl, or ccl, mkcl
 ```
 
 To load the project, you can use the following code:
@@ -59,6 +60,7 @@ This project exports the following libraries:
 - `packages.lib-ecl`: library for ECL.
 - `packages.lib-abcl`: library for ABCL.
 - `packages.lib-ccl`: library for CCL.
+- `packages.lib-mkcl`: library for MKCL.
 
 ## Development
 
