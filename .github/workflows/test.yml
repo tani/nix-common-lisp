@@ -12,13 +12,17 @@ jobs:
   test:
     strategy:
       matrix:
-        lisp: [ecl, sbcl, abcl, ccl, mkcl]
+        lisp: [ecl, sbcl, abcl, ccl, mkcl, cmucl_binary, clasp-common-lisp]
         os: [ubuntu-latest, macos-latest]
         exclude:
           - os: macos-latest
             lisp: ccl
           - os: macos-latest
             lisp: mkcl
+          - os: macos-latest
+            lisp: cmucl_binary
+          - os: macos-latest
+            lisp: clasp-common-lisp
 
     name: Test on ${{ matrix.os }} with ${{ matrix.lisp }}
 

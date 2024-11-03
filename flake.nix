@@ -35,6 +35,8 @@
         "ecl"
         "ccl"
         "mkcl"
+        "cmucl_binary"
+        "clasp-common-lisp"
       ];
       ##################################
       isAvailable = impl: builtins.elem system pkgs.${impl}.meta.platforms;
@@ -103,6 +105,21 @@
             exec ${lisp}/bin/ccl --quiet --eval "(require :asdf)" --eval "(asdf:test-system :${pname})" --eval "(quit)"
           '';
         };
+        cmucl_binary = rec {
+          mainLib = pkgs.cmucl_binary.buildASDFSystem {
+            inherit pname version src systems nativeLibs;
+            lispLibs = lispLibs pkgs.cmucl_binary;
+          };
+          lisp = pkgs.cmucl_binary.withPackages (ps: [mainLib]);
+          mainExe = pkgs.writeShellScriptBin pname ''
+            export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
+            exec ${lisp}/bin/lisp -quiet -eval "(require :asdf)" -eval "(asdf:load-system :${pname})" -eval "(${pname}:main)" -eval "(quit)" -- "$@"
+          '';
+          testExe = pkgs.writeShellScriptBin "${pname}-test" ''
+            export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
+            exec ${lisp}/bin/lisp -quiet -eval "(require :asdf)" -eval "(asdf:test-system :${pname})" -eval "(quit)"
+          '';
+        };
         abcl = rec {
           mainLib = pkgs.abcl.buildASDFSystem {
             inherit pname version src systems nativeLibs;
@@ -116,6 +133,21 @@
           testExe = pkgs.writeShellScriptBin "${pname}-test" ''
             export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
             exec ${lisp}/bin/abcl --noinform --eval "(require :asdf)" --eval "(asdf:test-system :${pname})" --eval "(quit)"
+          '';
+        };
+        clasp-common-lisp = rec {
+          mainLib = pkgs.clasp-common-lisp.buildASDFSystem {
+            inherit pname version src systems nativeLibs;
+            lispLibs = lispLibs pkgs.clasp-common-lisp;
+          };
+          lisp = pkgs.clasp-common-lisp.withPackages (ps: [mainLib]);
+          mainExe = pkgs.writeShellScriptBin pname ''
+            export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
+            exec ${lisp}/bin/clasp --noinform --eval "(require :asdf)" --eval "(asdf:load-system :${pname})" --eval "(${pname}:main)" --quit -- "$@"
+          '';
+          testExe = pkgs.writeShellScriptBin "${pname}-test" ''
+            export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
+            exec ${lisp}/bin/clasp --noinform --eval "(require :asdf)" --eval "(asdf:test-system :${pname})" --quit
           '';
         };
         ecl = rec {

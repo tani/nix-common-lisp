@@ -18,6 +18,8 @@ nix run .#main-sbcl
 - `.#main-abcl`: Run the entrypoint using ABCL.
 - `.#main-ccl`: Run the entrypoint using CCL.
 - `.#main-mkcl`: Run the entrypoint using MKCL.
+- `.#main-cmucl_binary`: Run the entrypoint using CMUCL.
+- `.#main-clasp-common-lisp`: Run the entrypoint using Clasp.
 
 ### Run tests
 
@@ -35,13 +37,15 @@ We use [FiveAM](https://github.com/lispci/fiveam) for testing.
 - `.#test-abcl`: Run all tests using ABCL.
 - `.#test-ccl`: Run all tests using CCL.
 - `.#test-mkcl`: Run all tests using MKCL.
+- `.#main-cmucl_binary`: Run all tests using CMUCL.
+- `.#main-clasp-common-lisp`: Run all tests using Clasp.
 
 ### Run REPL
 
 You can run a REPL with the following command:
 
 ```sh
-nix develop -c sbcl # ecl, abcl, or ccl, mkcl
+nix develop -c sbcl # ecl, abcl, or ccl, mkcl, lisp, clasp
 ```
 
 To load the project, you can use the following code:
@@ -61,6 +65,8 @@ This project exports the following libraries:
 - `packages.lib-abcl`: library for ABCL.
 - `packages.lib-ccl`: library for CCL.
 - `packages.lib-mkcl`: library for MKCL.
+- `packages.lib-cmucl_binary`: library for CMUCL.
+- `packages.lib-clasp-common-lisp`: library for Clasp.
 
 ## Development
 
