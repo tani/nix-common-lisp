@@ -35,6 +35,7 @@
         "ecl"
         "ccl"
         "mkcl"
+        "clisp"
         "clasp-common-lisp"
       ];
       ##################################
@@ -102,6 +103,21 @@
           testExe = pkgs.writeShellScriptBin "${pname}-test" ''
             export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
             exec ${lisp}/bin/ccl --quiet --eval "(require :asdf)" --eval "(asdf:test-system :${pname})" --eval "(quit)"
+          '';
+        };
+        clisp = rec {
+          mainLib = pkgs.clisp.buildASDFSystem {
+            inherit pname version src systems nativeLibs;
+            lispLibs = lispLibs pkgs.clisp;
+          };
+          lisp = pkgs.clisp.withPackages (ps: [mainLib]);
+          mainExe = pkgs.writeShellScriptBin pname ''
+            export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
+            exec ${lisp}/bin/clisp --quiet -x "(require :asdf)" -x "(asdf:load-system :${pname})" -x "(${pname}:main)" -x "(quit)" -- "$@"
+          '';
+          testExe = pkgs.writeShellScriptBin "${pname}-test" ''
+            export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
+            exec ${lisp}/bin/clisp --quiet -x "(require :asdf)" -x "(asdf:test-system :${pname})" -x "(quit)"
           '';
         };
         abcl = rec {
