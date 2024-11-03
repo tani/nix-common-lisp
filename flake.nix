@@ -35,7 +35,6 @@
         "ecl"
         "ccl"
         "mkcl"
-        "cmucl_binary"
         "clasp-common-lisp"
       ];
       ##################################
@@ -103,21 +102,6 @@
           testExe = pkgs.writeShellScriptBin "${pname}-test" ''
             export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
             exec ${lisp}/bin/ccl --quiet --eval "(require :asdf)" --eval "(asdf:test-system :${pname})" --eval "(quit)"
-          '';
-        };
-        cmucl_binary = rec {
-          mainLib = pkgs.cmucl_binary.buildASDFSystem {
-            inherit pname version src systems nativeLibs;
-            lispLibs = lispLibs pkgs.cmucl_binary;
-          };
-          lisp = pkgs.cmucl_binary.withPackages (ps: [mainLib]);
-          mainExe = pkgs.writeShellScriptBin pname ''
-            export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
-            exec ${lisp}/bin/lisp -quiet -eval "(require :asdf)" -eval "(asdf:load-system :${pname})" -eval "(${pname}:main)" -eval "(quit)" -- "$@"
-          '';
-          testExe = pkgs.writeShellScriptBin "${pname}-test" ''
-            export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
-            exec ${lisp}/bin/lisp -quiet -eval "(require :asdf)" -eval "(asdf:test-system :${pname})" -eval "(quit)"
           '';
         };
         abcl = rec {
