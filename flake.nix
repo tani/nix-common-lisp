@@ -130,8 +130,8 @@
         };
         mkcl = nonBundledPackage {
           pkg = pkgs.mkcl;
-          mainCmd = lisp: "${lisp}/bin/mkcl --eval '(require :asdf)' --eval '(asdf:load-system :${pname})' --eval '(${pname}:main)' --eval '(quit)'";
-          testCmd = lisp: "${lisp}/bin/mkcl --eval '(require :asdf)' --eval '(asdf:test-system :${pname})'";
+          mainCmd = lisp: "${lisp}/bin/mkcl --quiet -eval '(require :asdf)' -eval '(asdf:load-system :${pname})' -eval '(${pname}:main)' -eval '(quit)'";
+          testCmd = lisp: "${lisp}/bin/mkcl --quiet -eval '(require :asdf)' -eval '(asdf:test-system :${pname})'";
         };
       };
       apps =  impl: [
@@ -143,7 +143,9 @@
     in {
       devShells.default = pkgs.mkShell {
         inherit LD_LIBRARY_PATH;
-        shellHook = ''export CL_SOURCE_REGISTRY=$PWD'';
+        shellHook = ''
+          export CL_SOURCE_REGISTRY=$PWD
+        '';
         packages = builtins.map devPackages availableLispImpls;
       };
       packages = builtins.listToAttrs (builtins.map packages availableLispImpls);
