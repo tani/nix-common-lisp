@@ -41,177 +41,97 @@
       ];
       ##################################
       isAvailable = impl: let lisp = pkgs.${impl}; in
-        (builtins.tryEval lisp).success && (builtins.elem system lisp.meta.platforms) && (!lisp.meta.broken);
+        (builtins.tryEval lisp).success
+        && (builtins.elem system lisp.meta.platforms)
+        && (!lisp.meta.broken);
       availableLispImpls = builtins.filter isAvailable lispImpls;
       LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath nativeLibs;
+      nonBundledPackage = { pkg, mainCmd, testCmd }: rec {
+        mainLib = pkg.buildASDFSystem {
+          inherit pname version src systems nativeLibs;
+          lispLibs = lispLibs pkg;
+        };
+        lisp = pkg.withPackages (ps: [mainLib]);
+        mainExe = pkgs.writeShellScriptBin pname ''
+          export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
+          exec ${mainCmd lisp} -- "$@"
+        '';
+        testExe = pkgs.writeShellScriptBin "${pname}-test" ''
+          export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
+          exec ${testCmd lisp}
+        '';
+      };
+      bundledPackage = { pkg, mainCmd, testCmd }: rec {
+        mainLib = pkg.buildASDFSystem {
+          inherit pname version src systems nativeLibs;
+          lispLibs = lispLibs pkg;
+        };
+        lisp = pkg.withPackages (ps: [mainLib]);
+        mainExe = pkgs.stdenv.mkDerivation {
+          inherit pname version src;
+          meta.mainProgram = pname;
+          dontStrip = true;
+          buildPhase = ''
+            export HOME=$TMPDIR
+            export CL_BUILD_PATHNAME=`realpath -s --relative-to=$src $TMPDIR/${pname}_raw`
+            export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
+            ${mainCmd lisp}
+          '';
+          installPhase = ''
+            install -D $CL_BUILD_PATHNAME $out/bin/${pname}_raw
+            cat > $out/bin/${pname} <<-EOF
+              #!/bin/sh
+              export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
+              exec $out/bin/${pname}_raw "\$@"
+            EOF
+            chmod +x $out/bin/${pname}
+          '';
+        };
+        testExe = pkgs.writeShellScriptBin "${pname}-test" ''
+          export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
+          ${testCmd lisp}
+        '';
+      };
       recipe = {
-        sbcl = rec {
-          mainLib = pkgs.sbcl.buildASDFSystem {
-            inherit pname version src systems nativeLibs;
-            lispLibs = lispLibs pkgs.sbcl;
-          };
-          lisp = pkgs.sbcl.withPackages (ps: [mainLib]);
-          mainExe = pkgs.stdenv.mkDerivation {
-            inherit pname version src;
-            meta.mainProgram = pname;
-            dontStrip = true;
-            buildPhase = ''
-              export HOME=$TMPDIR
-              export CL_BUILD_PATHNAME=`realpath -s --relative-to=$src $TMPDIR/${pname}_raw`
-              export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
-              ${lisp}/bin/sbcl --noinform --non-interactive --eval "(require :asdf)" --eval "(asdf:make :${pname})"
-            '';
-            installPhase = ''
-              install -D $CL_BUILD_PATHNAME $out/bin/${pname}_raw
-              cat > $out/bin/${pname} <<-EOF
-                #!/bin/sh
-                export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
-                exec $out/bin/${pname}_raw "\$@"
-              EOF
-              chmod +x $out/bin/${pname}
-            '';
-          };
-          testExe = pkgs.writeShellScriptBin "${pname}-test" ''
-            export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
-            exec ${lisp}/bin/sbcl --noinform --non-interactive --eval "(require :asdf)" --eval "(asdf:test-system :${pname})"
-          '';
+        sbcl = bundledPackage {
+          pkg = pkgs.sbcl;
+          mainCmd = lisp: "${lisp}/bin/sbcl --noinform --non-interactive --eval '(require :asdf)' --eval '(asdf:make :${pname})'";
+          testCmd = lisp: "${lisp}/bin/sbcl --noinform --non-interactive --eval '(require :asdf)' --eval '(asdf:test-system :${pname})'";
         };
-        cmucl_binary = rec {
-          mainLib = pkgs.cmucl_binary.buildASDFSystem {
-            inherit pname version src systems nativeLibs;
-            lispLibs = lispLibs pkgs.cmucl_binary;
-          };
-          lisp = pkgs.cmucl_binary.withPackages (ps: [mainLib]);
-          mainExe = pkgs.writeShellScriptBin pname ''
-            export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
-            exec ${lisp}/bin/lisp -quiet -eval "(require :asdf)" -eval "(asdf:load-system :${pname})" -eval "(${pname}:main)" -eval "(quit)" -- "$@"
-          '';
-          testExe = pkgs.writeShellScriptBin "${pname}-test" ''
-            export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
-            exec ${lisp}/bin/lisp -quiet -eval "(require :asdf)" -eval "(asdf:test-system :${pname})"
-          '';
+        ccl = bundledPackage {
+          pkg = pkgs.ccl;
+          mainCmd = lisp: "${lisp}/bin/ccl --quiet --eval '(require :asdf)' --eval '(asdf:make :${pname})'";
+          testCmd = lisp: "${lisp}/bin/ccl --quiet --eval '(require :asdf)' --eval '(asdf:test-system :${pname})'";
         };
-        ccl = rec {
-          mainLib = pkgs.ccl.buildASDFSystem {
-            inherit pname version src systems nativeLibs;
-            lispLibs = lispLibs pkgs.ccl;
-          };
-          lisp = pkgs.ccl.withPackages (ps: [mainLib]);
-          mainExe = pkgs.stdenv.mkDerivation {
-            inherit pname version src;
-            meta.mainProgram = pname;
-            dontStrip = true;
-            buildPhase = ''
-              export HOME=$TMPDIR
-              export CL_BUILD_PATHNAME=`realpath -s --relative-to=$src $TMPDIR/${pname}_raw`
-              export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
-              ${lisp}/bin/ccl --quiet --eval "(require :asdf)" --eval "(asdf:make :${pname})"
-            '';
-            installPhase = ''
-              install -D $CL_BUILD_PATHNAME $out/bin/${pname}_raw
-              cat > $out/bin/${pname} <<-EOF
-                #!/bin/sh
-                export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
-                exec $out/bin/${pname}_raw "\$@"
-              EOF
-              chmod +x $out/bin/${pname}
-            '';
-          };
-          testExe = pkgs.writeShellScriptBin "${pname}-test" ''
-            export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
-            exec ${lisp}/bin/ccl --quiet --eval "(require :asdf)" --eval "(asdf:test-system :${pname})" --eval "(quit)"
-          '';
+        clisp = bundledPackage {
+          pkg = pkgs.clisp;
+          mainCmd = lisp: "${lisp}/bin/clisp --quiet -x '(require \"asdf\")' -x '(asdf:make :${pname})'";
+          testCmd = lisp: "${lisp}/bin/clisp --quiet -x '(require \"asdf\")' -x '(asdf:test-system :${pname})'";
         };
-        clisp = rec {
-          mainLib = pkgs.clisp.buildASDFSystem {
-            inherit pname version src systems nativeLibs;
-            lispLibs = lispLibs pkgs.clisp;
-          };
-          lisp = pkgs.clisp.withPackages (ps: [mainLib]);
-          mainExe = pkgs.stdenv.mkDerivation {
-            inherit pname version src;
-            meta.mainProgram = pname;
-            dontStrip = true;
-            buildPhase = ''
-              export HOME=$TMPDIR
-              export CL_BUILD_PATHNAME=`realpath -s --relative-to=$src $TMPDIR/${pname}_raw`
-              export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
-              ${lisp}/bin/clisp --quiet -x '(require "asdf")' -x "(asdf:make :${pname})"
-            '';
-            installPhase = ''
-              install -D $CL_BUILD_PATHNAME $out/bin/${pname}_raw
-              cat > $out/bin/${pname} <<-EOF
-                #!/bin/sh
-                export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
-                exec $out/bin/${pname}_raw "\$@"
-              EOF
-              chmod +x $out/bin/${pname}
-            '';
-          };
-          testExe = pkgs.writeShellScriptBin "${pname}-test" ''
-            export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
-            exec ${lisp}/bin/clisp --quiet -x '(require "asdf")' -x "(asdf:test-system :${pname})" -x "(quit)"
-          '';
+        cmucl_binary = nonBundledPackage {
+          pkg = pkgs.cmucl_binary;
+          mainCmd = lisp: "${lisp}/bin/lisp -quiet -eval '(require :asdf)' -eval '(asdf:load-system :${pname})' -eval '(${pname}:main)' -eval '(quit)'";
+          testCmd = lisp: "${lisp}/bin/lisp -quiet -eval '(require :asdf)' -eval '(asdf:test-system :${pname})'";
         };
-        abcl = rec {
-          mainLib = pkgs.abcl.buildASDFSystem {
-            inherit pname version src systems nativeLibs;
-            lispLibs = lispLibs pkgs.abcl;
-          };
-          lisp = pkgs.abcl.withPackages (ps: [mainLib]);
-          mainExe = pkgs.writeShellScriptBin pname ''
-            export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
-            exec ${lisp}/bin/abcl --noinform --eval "(require :asdf)" --eval "(asdf:load-system :${pname})" --eval "(${pname}:main)" --eval "(quit)" -- "$@"
-          '';
-          testExe = pkgs.writeShellScriptBin "${pname}-test" ''
-            export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
-            exec ${lisp}/bin/abcl --noinform --eval "(require :asdf)" --eval "(asdf:test-system :${pname})" --eval "(quit)"
-          '';
+        abcl = nonBundledPackage {
+          pkg = pkgs.abcl;
+          mainCmd = lisp: "${lisp}/bin/abcl --noinform --eval '(require :asdf)' --eval '(asdf:load-system :${pname})' --eval '(${pname}:main)' --eval '(quit)'";
+          testCmd = lisp: "${lisp}/bin/abcl --noinform --eval '(require :asdf)' --eval '(asdf:test-system :${pname})'";
         };
-        clasp-common-lisp = rec {
-          mainLib = pkgs.clasp-common-lisp.buildASDFSystem {
-            inherit pname version src systems nativeLibs;
-            lispLibs = lispLibs pkgs.clasp-common-lisp;
-          };
-          lisp = pkgs.clasp-common-lisp.withPackages (ps: [mainLib]);
-          mainExe = pkgs.writeShellScriptBin pname ''
-            export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
-            exec ${lisp}/bin/clasp --noinform --eval "(require :asdf)" --eval "(asdf:load-system :${pname})" --eval "(${pname}:main)" --quit -- "$@"
-          '';
-          testExe = pkgs.writeShellScriptBin "${pname}-test" ''
-            export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
-            exec ${lisp}/bin/clasp --noinform --eval "(require :asdf)" --eval "(asdf:test-system :${pname})" --quit
-          '';
+        clasp-common-lisp = nonBundledPackage {
+          pkg = pkgs.clasp-common-lisp;
+          mainCmd = lisp: "${lisp}/bin/clasp --noinform --eval '(require :asdf)' --eval '(asdf:load-system :${pname})' --eval '(${pname}:main)' --eval '(quit)'";
+          testCmd = lisp: "${lisp}/bin/clasp --noinform --eval '(require :asdf)' --eval '(asdf:test-system :${pname})'";
         };
-        ecl = rec {
-          mainLib = pkgs.ecl.buildASDFSystem {
-            inherit pname version src systems nativeLibs;
-            lispLibs = lispLibs pkgs.ecl;
-          };
-          lisp = pkgs.ecl.withPackages (ps: [mainLib]);
-          mainExe = pkgs.writeShellScriptBin pname ''
-            export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
-            exec ${lisp}/bin/ecl --eval "(require :asdf)" --eval "(asdf:load-system :${pname})" --eval "(${pname}:main)" --eval "(quit)" -- "$@"
-          '';
-          testExe = pkgs.writeShellScriptBin "${pname}-test" ''
-            export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
-            exec ${lisp}/bin/ecl --eval "(require :asdf)" --eval "(asdf:test-system :${pname})" --eval "(quit)"
-          '';
+        ecl = nonBundledPackage {
+          pkg = pkgs.ecl;
+          mainCmd = lisp: "${lisp}/bin/ecl --eval '(require :asdf)' --eval '(asdf:load-system :${pname})' --eval '(${pname}:main)' --eval '(quit)'";
+          testCmd = lisp: "${lisp}/bin/ecl --eval '(require :asdf)' --eval '(asdf:test-system :${pname})'";
         };
-        mkcl = rec {
-          mainLib = pkgs.mkcl.buildASDFSystem {
-            inherit pname version src systems nativeLibs;
-            lispLibs = lispLibs pkgs.mkcl;
-          };
-          lisp = pkgs.mkcl.withPackages (ps: [mainLib]);
-          mainExe = pkgs.writeShellScriptBin pname ''
-            export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
-            exec ${lisp}/bin/mkcl -eval "(require :asdf)" -eval "(asdf:load-system :${pname})" -eval "(${pname}:main)" -eval "(quit)" -- "$@"
-          '';
-          testExe = pkgs.writeShellScriptBin "${pname}-test" ''
-            export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
-            exec ${lisp}/bin/mkcl -eval "(require :asdf)" -eval "(asdf:test-system :${pname})" -eval "(quit)"
-          '';
+        mkcl = nonBundledPackage {
+          pkg = pkgs.mkcl;
+          mainCmd = lisp: "${lisp}/bin/mkcl --eval '(require :asdf)' --eval '(asdf:load-system :${pname})' --eval '(${pname}:main)' --eval '(quit)'";
+          testCmd = lisp: "${lisp}/bin/mkcl --eval '(require :asdf)' --eval '(asdf:test-system :${pname})'";
         };
       };
       apps =  impl: [
