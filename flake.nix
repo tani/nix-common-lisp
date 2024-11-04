@@ -82,26 +82,10 @@
             lispLibs = lispLibs pkgs.cmucl_binary;
           };
           lisp = pkgs.cmucl_binary.withPackages (ps: [mainLib]);
-          mainExe = pkgs.stdenv.mkDerivation {
-            inherit pname version src;
-            meta.mainProgram = pname;
-            dontStrip = true;
-            buildPhase = ''
-              export HOME=$TMPDIR
-              export CL_BUILD_PATHNAME=`realpath -s --relative-to=$src $TMPDIR/${pname}_raw`
-              export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
-              ${lisp}/bin/lisp -quiet -eval "(require :asdf)" -eval "(asdf:make :${pname})"
-            '';
-            installPhase = ''
-              install -D $CL_BUILD_PATHNAME $out/bin/${pname}_raw
-              cat > $out/bin/${pname} <<-EOF
-                #!/bin/sh
-                export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
-                exec $out/bin/${pname}_raw "\$@"
-              EOF
-              chmod +x $out/bin/${pname}
-            '';
-          };
+          mainExe = pkgs.writeShellScriptBin pname ''
+            export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
+            exec ${lisp}/bin/lisp -quiet -eval "(require :asdf)" -eval "(asdf:load-system :${pname})" -eval "(${pname}:main)" -eval "(quit)" -- "$@"
+          '';
           testExe = pkgs.writeShellScriptBin "${pname}-test" ''
             export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
             exec ${lisp}/bin/lisp -quiet -eval "(require :asdf)" -eval "(asdf:test-system :${pname})"
