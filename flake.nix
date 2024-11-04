@@ -139,7 +139,7 @@
         { name = "test-" + impl; value = { type = "app"; program = recipe.${impl}.testExe; }; }
       ];
       packages = impl: { name = "lib-" + impl; value = recipe.${impl}.mainLib; };
-      devPackages = impl: pkgs.${impl}.withPackages (ps: [recipe.${impl}.mainLib]);
+      devPackages = impl: pkgs.${impl}.withPackages (ps: lispLibs pkgs.${impl});
     in {
       devShells.default = pkgs.mkShell {
         inherit LD_LIBRARY_PATH;
