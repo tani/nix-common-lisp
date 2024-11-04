@@ -11,6 +11,7 @@ on:
 jobs:
   test:
     strategy:
+      fail-fast: false
       matrix:
         lisp: [ecl, sbcl, abcl, ccl, mkcl, clisp, cmucl_binary, clasp-common-lisp]
         os: [ubuntu-latest, macos-latest]
