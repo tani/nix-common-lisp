@@ -94,14 +94,14 @@ This project exports the overlay.
   - `pkgs.fibonacci-cmucl_binary`: it is equivalent to `packages.main-cmucl_binary`.
   - `pkgs.fibonacci-clasp-common-lisp`: it is equivalent to `packages.main-clasp-common-lisp`.
 
-  - `pkgs.sbcl.fibnoacci`: it is equivalent to `packages.lib-sbcl`.
-  - `pkgs.ecl.fibnoacci`: it is equivalent to `packages.lib-ecl`.
-  - `pkgs.abcl.fibnoacci`: it is equivalent to `packages.lib-abcl`.
-  - `pkgs.ccl.fibnoacci`: it is equivalent to `packages.lib-ccl`.
-  - `pkgs.mkcl.fibnoacci`: it is equivalent to `packages.lib-mkcl`.
-  - `pkgs.clisp.fibnoacci`: it is equivalent to `packages.lib-clisp`.
-  - `pkgs.cmucl_binary.fibnoacci`: it is equivalent to `packages.lib-cmucl_binary`.
-  - `pkgs.clasp-common-lisp.fibnoacci`: it is equivalent to `packages.lib-clasp-common-lisp`.
+  - `pkgs.sbcl.fibonacci`: it is equivalent to `packages.lib-sbcl`.
+  - `pkgs.ecl.fibonacci`: it is equivalent to `packages.lib-ecl`.
+  - `pkgs.abcl.fibonacci`: it is equivalent to `packages.lib-abcl`.
+  - `pkgs.ccl.fibonacci`: it is equivalent to `packages.lib-ccl`.
+  - `pkgs.mkcl.fibonacci`: it is equivalent to `packages.lib-mkcl`.
+  - `pkgs.clisp.fibonacci`: it is equivalent to `packages.lib-clisp`.
+  - `pkgs.cmucl_binary.fibonacci`: it is equivalent to `packages.lib-cmucl_binary`.
+  - `pkgs.clasp-common-lisp.fibonacci`: it is equivalent to `packages.lib-clasp-common-lisp`.
 
 To use the overlay,
 
