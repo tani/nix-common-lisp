@@ -3,12 +3,14 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
     flake-parts.url = "github:hercules-ci/flake-parts";
-    systems.url = "github:nix-systems/default";
   };
   outputs = inputs @ { self, nixpkgs, flake-parts, systems }:
   flake-parts.lib.mkFlake { inherit inputs; } {
-    systems = import systems;
-    perSystem = { pkgs, system, ... }: let
+    imports = [
+      flake-parts.flakeModules.easyOverlay
+    ];
+    systems = nixpkgs.lib.platforms.all;
+    perSystem = { config, pkgs, system, final, ... }: let
       ############ Settings ############
       ## Project name
       pname = "fibonacci";
@@ -134,13 +136,23 @@
           testCmd = lisp: "${lisp}/bin/mkcl --quiet -eval '(require :asdf)' -eval '(asdf:test-system :${pname})'";
         };
       };
-      apps =  impl: [
+      apps = impl: [
         { name = "main-" + impl; value = { type = "app"; program = recipe.${impl}.mainExe; }; }
         { name = "test-" + impl; value = { type = "app"; program = recipe.${impl}.testExe; }; }
       ];
-      packages = impl: { name = "lib-" + impl; value = recipe.${impl}.mainLib; };
+      packages = impl: [
+        { name = "main-" + impl; value = recipe.${impl}.mainExe; }
+        { name = "lib-" + impl; value = recipe.${impl}.mainLib; }
+      ];
       devPackages = impl: pkgs.${impl}.withPackages (ps: lispLibs pkgs.${impl});
+      overlays = impl: {
+        ${impl} = pkgs.${impl}.withOverrides (self: super: {
+          ${pname} = config.packages."lib-${impl}";
+        });
+        "${pname}-${impl}" = config.packages."main-${impl}";
+      };
     in {
+      overlayAttrs = builtins.listToAttrs (builtins.map overlays availableLispImpls);
       devShells.default = pkgs.mkShell {
         inherit LD_LIBRARY_PATH;
         shellHook = ''
@@ -148,7 +160,7 @@
         '';
         packages = builtins.map devPackages availableLispImpls;
       };
-      packages = builtins.listToAttrs (builtins.map packages availableLispImpls);
+      packages = builtins.listToAttrs (builtins.concatMap packages availableLispImpls);
       apps = builtins.listToAttrs (builtins.concatMap apps availableLispImpls);
     };
   };

@@ -58,9 +58,9 @@ To load the project, you can use the following code:
 (require :fibonacci)
 ```
 
-### Use library
+### Packages
 
-This project exports the following libraries:
+This project exports the following packages:
 
 - `packages.lib-sbcl`: library for SBCL.
 - `packages.lib-ecl`: library for ECL.
@@ -70,6 +70,52 @@ This project exports the following libraries:
 - `packages.lib-clisp`: library for CLISP.
 - `packages.lib-cmucl_binary`: library for CMUCL.
 - `packages.lib-clasp-common-lisp`: library for Clasp.
+
+- `packages.main-sbcl`: executable for SBCL.
+- `packages.main-ecl`: executable for ECL.
+- `packages.main-abcl`: executable for ABCL.
+- `packages.main-ccl`: executable for CCL.
+- `packages.main-mkcl`: executable for MKCL.
+- `packages.main-clisp`: executable for CLISP.
+- `packages.main-cmucl_binary`: executable for CMUCL.
+- `packages.main-clasp-common-lisp`: executable for Clasp.
+
+### Overlays
+
+This project exports the overlay.
+
+- `overlays.default`: it adds following packages:
+  - `pkgs.fibonacci-sbcl`: it is equivalent to `packages.main-sbcl`.
+  - `pkgs.fibonacci-ecl`: it is equivalent to `packages.main-ecl`.
+  - `pkgs.fibonacci-abcl`: it is equivalent to `packages.main-abcl`.
+  - `pkgs.fibonacci-ccl`: it is equivalent to `packages.main-ccl`.
+  - `pkgs.fibonacci-mkcl`: it is equivalent to `packages.main-mkcl`.
+  - `pkgs.fibonacci-clisp`: it is equivalent to `packages.main-clisp`.
+  - `pkgs.fibonacci-cmucl_binary`: it is equivalent to `packages.main-cmucl_binary`.
+  - `pkgs.fibonacci-clasp-common-lisp`: it is equivalent to `packages.main-clasp-common-lisp`.
+
+  - `pkgs.sbcl.fibnoacci`: it is equivalent to `packages.lib-sbcl`.
+  - `pkgs.ecl.fibnoacci`: it is equivalent to `packages.lib-ecl`.
+  - `pkgs.abcl.fibnoacci`: it is equivalent to `packages.lib-abcl`.
+  - `pkgs.ccl.fibnoacci`: it is equivalent to `packages.lib-ccl`.
+  - `pkgs.mkcl.fibnoacci`: it is equivalent to `packages.lib-mkcl`.
+  - `pkgs.clisp.fibnoacci`: it is equivalent to `packages.lib-clisp`.
+  - `pkgs.cmucl_binary.fibnoacci`: it is equivalent to `packages.lib-cmucl_binary`.
+  - `pkgs.clasp-common-lisp.fibnoacci`: it is equivalent to `packages.lib-clasp-common-lisp`.
+
+To use the overlay,
+
+```nix
+let
+  pkgs = import nixpkgs {
+    inherit system;
+    overlays = [
+      fibonacci.overlays.default
+    ];
+  };
+in
+  # You can use packages such as pkgs.fibonacci-sbcl
+```
 
 ## Development
 
