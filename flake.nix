@@ -165,7 +165,7 @@
           pkg = pkgs.ecl;
           cmd = lisp: code: ''
             ${lisp}/bin/ecl --eval '(require :asdf)' --eval "$(cat <<EOF
-              $[code}]
+              ${code}
             EOF
             )" -- "$@"
           '';
