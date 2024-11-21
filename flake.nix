@@ -146,15 +146,18 @@
             EOF
           '';
         };
-        clisp = bundledPackage {
+        clisp = unbundledPackage {
           pkg = pkgs.clisp;
           mainCmd = lisp: ''
-            ${lisp}/bin/clisp --quiet <<EOF
-              (require "asdf")
-              (let ((system (asdf:find-system :${pname})))
-                (setf (asdf/system:component-build-pathname system) #p"$out/bin/${pname}"))
-              (asdf:make :${pname})
+            ${lisp}/bin/clisp --quiet -x '(require :asdf)' -x "$(cat <<EOF
+              (let* ((_ (asdf:load-system :${pname}))
+                     (component (asdf:find-system :${pname}))
+                     (entry-point (asdf/system:component-entry-point component))
+                     (function (uiop:ensure-function entry-point)))
+                (funcall function)
+                (quit))
             EOF
+            )" -- "$@"
           '';
           testCmd = lisp: ''
             ${lisp}/bin/clisp --quiet <<EOF
