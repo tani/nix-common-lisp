@@ -21,7 +21,7 @@
       ## Exported systems
       systems = [
         pname
-        "${pname}-test"
+        "${pname}/test"
       ];
       ## Dependencies
       lispLibs = lisp: with lisp.pkgs; [
@@ -77,7 +77,6 @@
               dontStrip = true;
               installPhase = ''
                 export HOME=$TMPDIR
-                export CL_BUILD_PATHNAME=`realpath -s --relative-to=$src $out/bin/${pname}`
                 export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
                 ${mainCmd lisp}
               '';
@@ -118,6 +117,8 @@
           mainCmd = lisp: ''
             ${lisp}/bin/sbcl --noinform --disable-debugger <<EOF
               (require :asdf)
+              (let ((system (asdf:find-system :${pname})))
+                (setf (asdf/system:component-build-pathname system) #p"$out/bin/${pname}"))
               (asdf:make :${pname})
             EOF
           '';
@@ -133,6 +134,8 @@
           mainCmd = lisp: ''
             ${lisp}/bin/ccl --quiet <<EOF
               (require :asdf)
+              (let ((system (asdf:find-system :${pname})))
+                (setf (asdf/system:component-build-pathname system) #p"$out/bin/${pname}"))
               (asdf:make :${pname})
               EOF
           '';
@@ -173,6 +176,8 @@
           mainCmd = lisp: ''
             ${lisp}/bin/clisp --quiet <<EOF
               (require "asdf")
+              (let ((system (asdf:find-system :${pname})))
+                (setf (asdf/system:component-build-pathname system) #p"$out/bin/${pname}"))
               (asdf:make :${pname})
             EOF
           '';
@@ -186,11 +191,15 @@
         cmucl_binary = unbundledPackage {
           pkg = pkgs.cmucl_binary;
           mainCmd = lisp: ''
-            ${lisp}/bin/lisp -quiet <<EOF
-              (require :asdf)
-              (asdf:load-system :${pname})
-              (${pname}:main)
-              (quit)
+            ${lisp}/bin/lisp -quiet <<EOF -- "$@"
+              (progn
+                (require :asdf)
+                (asdf:load-system :${pname})
+                (let* ((component (asdf:find-system :${pname}))
+                       (entry-point (asdf/system:component-entry-point component))
+                       (function (uiop:ensure-function entry-point)))
+                  (funcall function))
+                (quit))
             EOF
           '';
           testCmd = lisp: ''
@@ -204,11 +213,15 @@
         abcl = unbundledPackage {
           pkg = pkgs.abcl;
           mainCmd = lisp: ''
-            ${lisp}/bin/abcl --noinform <<EOF
+            ${lisp}/bin/abcl --noinform <<EOF -- "$@"
               (require :asdf)
-              (asdf:load-system :${pname})
-              (${pname}:main)
-              (quit)
+              (progn
+                (asdf:load-system :${pname})
+                (let* ((component (asdf:find-system :${pname}))
+                       (entry-point (asdf/system:component-entry-point component))
+                       (function (uiop:ensure-function entry-point)))
+                  (funcall function))
+                (quit))
             EOF
           '';
           testCmd = lisp: ''
@@ -222,11 +235,15 @@
         clasp-common-lisp = unbundledPackage {
           pkg = pkgs.clasp-common-lisp;
           mainCmd = lisp: ''
-            ${lisp}/bin/clasp --noinform <<EOF
+            ${lisp}/bin/clasp --noinform <<EOF -- "$@"
               (require :asdf)
-              (asdf:load-system :${pname})
-              (${pname}:main)
-              (quit)
+              (progn
+                (asdf:load-system :${pname})
+                (let* ((component (asdf:find-system :${pname}))
+                       (entry-point (asdf/system:component-entry-point component))
+                       (function (uiop:ensure-function entry-point)))
+                  (funcall function))
+                (quit))
             EOF
           '';
           testCmd = lisp: ''
@@ -240,11 +257,15 @@
         mkcl = unbundledPackage {
           pkg = pkgs.mkcl;
           mainCmd = lisp: ''
-            ${lisp}/bin/mkcl --quiet <<EOF
+            ${lisp}/bin/mkcl --quiet <<EOF -- "$@"
               (require :asdf)
-              (asdf:load-system :${pname})
-              (${pname}:main)
-              (quit)
+              (progn
+                (asdf:load-system :${pname})
+                (let* ((component (asdf:find-system :${pname}))
+                       (entry-point (asdf/system:component-entry-point component))
+                       (function (uiop:ensure-function entry-point)))
+                  (funcall function))
+                (quit))
             EOF
           '';
           testCmd = lisp: ''
