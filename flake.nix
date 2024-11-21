@@ -148,12 +148,17 @@
           mainCmd = lisp: ''
             ${lisp}/bin/ecl <<EOF
               (require :asdf)
-              (asdf:load-system :${pname})
               (asdf:make-build :${pname}
                 :type :program
                 :move-here #P"./"
-                :prologue-code (quote (require :asdf))
-                :epilogue-code (quote (progn (${pname}:main) (quit))))
+                :prologue-code
+                '(require :asdf)
+                :epilogue-code
+                '(let* ((component (asdf:find-system :${pname}))
+                        (entry-point (asdf/system:component-entry-point component))
+                        (function (uiop:ensure-function entry-point)))
+                   (funcall function)
+                   (quit))))
             EOF
             install -D ./${pname} $out/bin/${pname}
           '';
