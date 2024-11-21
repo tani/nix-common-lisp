@@ -48,7 +48,7 @@
         && (!lisp.meta.broken);
       availableLispImpls = builtins.filter isAvailable lispImpls;
       LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath nativeLibs;
-      nonBundledPackage = { pkg, mainCmd, testCmd }: rec {
+      unbundledPackage = { pkg, mainCmd, testCmd }: rec {
         mainLib = pkg.buildASDFSystem {
           inherit pname version src systems nativeLibs;
           lispLibs = lispLibs pkg;
@@ -115,33 +115,33 @@
       recipe = {
         sbcl = bundledPackage {
           pkg = pkgs.sbcl;
-          mainCmd = lisp: "${lisp}/bin/sbcl --noinform --non-interactive --eval '(require :asdf)' --eval '(asdf:make :${pname})'";
-          testCmd = lisp: "${lisp}/bin/sbcl --noinform --non-interactive --eval '(require :asdf)' --eval '(asdf:test-system :${pname})'";
+          mainCmd = lisp: ''
+            ${lisp}/bin/sbcl --noinform --disable-debugger <<EOF
+              (require :asdf)
+              (asdf:make :${pname})
+            EOF
+          '';
+          testCmd = lisp: ''
+            ${lisp}/bin/sbcl --noinform --disable-debugger <<EOF
+              (require :asdf)
+              (asdf:test-system :${pname})
+            EOF
+          '';
         };
         ccl = bundledPackage {
           pkg = pkgs.ccl;
-          mainCmd = lisp: "${lisp}/bin/ccl --quiet --eval '(require :asdf)' --eval '(asdf:make :${pname})'";
-          testCmd = lisp: "${lisp}/bin/ccl --quiet --eval '(require :asdf)' --eval '(asdf:test-system :${pname})'";
-        };
-        clisp = bundledPackage {
-          pkg = pkgs.clisp;
-          mainCmd = lisp: "${lisp}/bin/clisp --quiet -x '(require \"asdf\")' -x '(asdf:make :${pname})'";
-          testCmd = lisp: "${lisp}/bin/clisp --quiet -x '(require \"asdf\")' -x '(asdf:test-system :${pname})'";
-        };
-        cmucl_binary = nonBundledPackage {
-          pkg = pkgs.cmucl_binary;
-          mainCmd = lisp: "${lisp}/bin/lisp -quiet -eval '(require :asdf)' -eval '(asdf:load-system :${pname})' -eval '(${pname}:main)' -eval '(quit)'";
-          testCmd = lisp: "${lisp}/bin/lisp -quiet -eval '(require :asdf)' -eval '(asdf:test-system :${pname})'";
-        };
-        abcl = nonBundledPackage {
-          pkg = pkgs.abcl;
-          mainCmd = lisp: "${lisp}/bin/abcl --noinform --eval '(require :asdf)' --eval '(asdf:load-system :${pname})' --eval '(${pname}:main)' --eval '(quit)'";
-          testCmd = lisp: "${lisp}/bin/abcl --noinform --eval '(require :asdf)' --eval '(asdf:test-system :${pname})'";
-        };
-        clasp-common-lisp = nonBundledPackage {
-          pkg = pkgs.clasp-common-lisp;
-          mainCmd = lisp: "${lisp}/bin/clasp --noinform --eval '(require :asdf)' --eval '(asdf:load-system :${pname})' --eval '(${pname}:main)' --eval '(quit)'";
-          testCmd = lisp: "${lisp}/bin/clasp --noinform --eval '(require :asdf)' --eval '(asdf:test-system :${pname})'";
+          mainCmd = lisp: ''
+            ${lisp}/bin/ccl --quiet <<EOF
+              (require :asdf)
+              (asdf:make :${pname})
+              EOF
+          '';
+          testCmd = lisp: ''
+            ${lisp}/bin/ccl --quiet <<EOF
+              (require :asdf)
+              (asdf:test-system :${pname})
+            EOF
+          '';
         };
         ecl = bundledPackage {
           pkg = pkgs.ecl;
@@ -164,10 +164,92 @@
           '';
           testCmd = lisp: "${lisp}/bin/ecl --eval '(require :asdf)' --eval '(asdf:test-system :${pname})' --eval '(quit)'";
         };
-        mkcl = nonBundledPackage {
+        clisp = bundledPackage {
+          pkg = pkgs.clisp;
+          mainCmd = lisp: ''
+            ${lisp}/bin/clisp --quiet <<EOF
+              (require "asdf")
+              (asdf:make :${pname})
+            EOF
+          '';
+          testCmd = lisp: ''
+            ${lisp}/bin/clisp --quiet <<EOF
+              (require "asdf")
+              (asdf:test-system :${pname})
+            EOF
+          '';
+        };
+        cmucl_binary = unbundledPackage {
+          pkg = pkgs.cmucl_binary;
+          mainCmd = lisp: ''
+            ${lisp}/bin/lisp -quiet <<EOF
+              (require :asdf)
+              (asdf:load-system :${pname})
+              (${pname}:main)
+              (quit)
+            EOF
+          '';
+          testCmd = lisp: ''
+            ${lisp}/bin/lisp -quiet <<EOF
+              (require :asdf)
+              (asdf:test-system :${pname})
+              (quit)
+            EOF
+          '';
+        };
+        abcl = unbundledPackage {
+          pkg = pkgs.abcl;
+          mainCmd = lisp: ''
+            ${lisp}/bin/abcl --noinform <<EOF
+              (require :asdf)
+              (asdf:load-system :${pname})
+              (${pname}:main)
+              (quit)
+            EOF
+          '';
+          testCmd = lisp: ''
+            ${lisp}/bin/abcl --noinform <<EOF
+              (require :asdf)
+              (asdf:test-system :${pname})
+              (quit)
+            EOF
+          '';
+        };
+        clasp-common-lisp = unbundledPackage {
+          pkg = pkgs.clasp-common-lisp;
+          mainCmd = lisp: ''
+            ${lisp}/bin/clasp --noinform <<EOF
+              (require :asdf)
+              (asdf:load-system :${pname})
+              (${pname}:main)
+              (quit)
+            EOF
+          '';
+          testCmd = lisp: ''
+            ${lisp}/bin/clasp --noinform <<EOF
+              (require :asdf)
+              (asdf:test-system :${pname})
+              (quit)
+            EOF
+          '';
+        };
+        mkcl = unbundledPackage {
           pkg = pkgs.mkcl;
-          mainCmd = lisp: "${lisp}/bin/mkcl --quiet -eval '(require :asdf)' -eval '(asdf:load-system :${pname})' -eval '(${pname}:main)' -eval '(quit)'";
-          testCmd = lisp: "${lisp}/bin/mkcl --quiet -eval '(require :asdf)' -eval '(asdf:test-system :${pname})'";
+          mainCmd = lisp: ''
+            ${lisp}/bin/mkcl --quiet <<EOF
+              (require :asdf)
+              (asdf:load-system :${pname})
+              (${pname}:main)
+              (quit)
+            EOF
+          '';
+          testCmd = lisp: ''
+            ${lisp}/bin/mkcl --quiet <<EOF
+              (require :asdf)
+              (asdf:test-system :${pname})
+              (quit)
+            EOF
+          '';
         };
       };
       apps = impl: [
