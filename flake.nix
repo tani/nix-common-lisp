@@ -150,7 +150,7 @@
               (require :asdf)
               (asdf:make-build :${pname}
                 :type :program
-                :move-here #P"./"
+                :move-here #P"$out/bin/"
                 :prologue-code
                 '(require :asdf)
                 :epilogue-code
@@ -160,9 +160,13 @@
                    (funcall function)
                    (quit))))
             EOF
-            install -D ./${pname} $out/bin/${pname}
           '';
-          testCmd = lisp: "${lisp}/bin/ecl --eval '(require :asdf)' --eval '(asdf:test-system :${pname})' --eval '(quit)'";
+          testCmd = lisp: ''
+            ${lisp}/bin/ecl <<EOF
+              (require :asdf)
+              (asdf:test-system :${pname})
+            EOF
+          '';
         };
         clisp = bundledPackage {
           pkg = pkgs.clisp;
