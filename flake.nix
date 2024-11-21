@@ -151,17 +151,20 @@
           mainCmd = lisp: ''
             ${lisp}/bin/ecl <<EOF
               (require :asdf)
-              (asdf:make-build :${pname}
-                :type :program
-                :move-here #P"$out/bin/"
-                :prologue-code
-                '(require :asdf)
-                :epilogue-code
-                '(let* ((component (asdf:find-system :${pname}))
-                        (entry-point (asdf/system:component-entry-point component))
-                        (function (uiop:ensure-function entry-point)))
-                   (funcall function)
-                   (quit))))
+              (let* ((system (asdf:find-system :${pname}))
+                     (entry-point (asdf/system:component-entry-point system)))
+                (setf (asdf/system:component-build-pathname system) #p"$out/bin/${pname}")
+                (asdf:make-build :${pname}
+                  :type :program
+                  :move-here #P"$out/bin/"
+                  :prologue-code
+                  '(require :asdf)
+                  :epilogue-code
+                  \`(progn
+                      (asdf:load-system :${pname})
+                      (setq uiop:*command-line-arguments* (cdr (uiop:raw-command-line-arguments)))
+                      (funcall (uiop:ensure-function ',entry-point))
+                      (quit))))
             EOF
           '';
           testCmd = lisp: ''
@@ -191,88 +194,80 @@
         cmucl_binary = unbundledPackage {
           pkg = pkgs.cmucl_binary;
           mainCmd = lisp: ''
-            ${lisp}/bin/lisp -quiet <<EOF -- "$@"
-              (progn
-                (require :asdf)
-                (asdf:load-system :${pname})
-                (let* ((component (asdf:find-system :${pname}))
-                       (entry-point (asdf/system:component-entry-point component))
-                       (function (uiop:ensure-function entry-point)))
-                  (funcall function))
+            ${lisp}/bin/lisp -quiet -eval '(require :asdf)' -eval "$(cat <<EOF
+              (let* ((_ (asdf:load-system :${pname}))
+                     (component (asdf:find-system :${pname}))
+                     (entry-point (asdf/system:component-entry-point component))
+                     (function (uiop:ensure-function entry-point)))
+                (funcall function)
                 (quit))
             EOF
+            )" -- "$@"
           '';
           testCmd = lisp: ''
             ${lisp}/bin/lisp -quiet <<EOF
               (require :asdf)
               (asdf:test-system :${pname})
-              (quit)
             EOF
           '';
         };
         abcl = unbundledPackage {
           pkg = pkgs.abcl;
           mainCmd = lisp: ''
-            ${lisp}/bin/abcl --noinform <<EOF -- "$@"
-              (require :asdf)
-              (progn
-                (asdf:load-system :${pname})
-                (let* ((component (asdf:find-system :${pname}))
-                       (entry-point (asdf/system:component-entry-point component))
-                       (function (uiop:ensure-function entry-point)))
-                  (funcall function))
+            ${lisp}/bin/abcl --noinform --eval '(require :asdf)' --eval "$(cat <<EOF
+              (let* ((_ (asdf:load-system :${pname}))
+                     (component (asdf:find-system :${pname}))
+                     (entry-point (asdf/system:component-entry-point component))
+                     (function (uiop:ensure-function entry-point)))
+                (funcall function)
                 (quit))
             EOF
+            )" -- "$@"
           '';
           testCmd = lisp: ''
             ${lisp}/bin/abcl --noinform <<EOF
               (require :asdf)
               (asdf:test-system :${pname})
-              (quit)
             EOF
           '';
         };
         clasp-common-lisp = unbundledPackage {
           pkg = pkgs.clasp-common-lisp;
           mainCmd = lisp: ''
-            ${lisp}/bin/clasp --noinform <<EOF -- "$@"
-              (require :asdf)
-              (progn
-                (asdf:load-system :${pname})
-                (let* ((component (asdf:find-system :${pname}))
-                       (entry-point (asdf/system:component-entry-point component))
-                       (function (uiop:ensure-function entry-point)))
-                  (funcall function))
+            ${lisp}/bin/clasp --noinform --eval '(require :asdf)' --eval "$(cat <<EOF
+              (let* ((_ (asdf:load-system :${pname}))
+                     (component (asdf:find-system :${pname}))
+                     (entry-point (asdf/system:component-entry-point component))
+                     (function (uiop:ensure-function entry-point)))
+                (funcall function)
                 (quit))
             EOF
+            )" -- "$@"
           '';
           testCmd = lisp: ''
             ${lisp}/bin/clasp --noinform <<EOF
               (require :asdf)
               (asdf:test-system :${pname})
-              (quit)
             EOF
           '';
         };
         mkcl = unbundledPackage {
           pkg = pkgs.mkcl;
           mainCmd = lisp: ''
-            ${lisp}/bin/mkcl --quiet <<EOF -- "$@"
-              (require :asdf)
-              (progn
-                (asdf:load-system :${pname})
-                (let* ((component (asdf:find-system :${pname}))
-                       (entry-point (asdf/system:component-entry-point component))
-                       (function (uiop:ensure-function entry-point)))
-                  (funcall function))
+            ${lisp}/bin/mkcl --quiet -eval '(require :asdf)' -eval "$(cat <<EOF
+              (let* ((_ (asdf:load-system :${pname}))
+                     (component (asdf:find-system :${pname}))
+                     (entry-point (asdf/system:component-entry-point component))
+                     (function (uiop:ensure-function entry-point)))
+                (funcall function)
                 (quit))
             EOF
+            )" -- "$@"
           '';
           testCmd = lisp: ''
             ${lisp}/bin/mkcl --quiet <<EOF
               (require :asdf)
               (asdf:test-system :${pname})
-              (quit)
             EOF
           '';
         };
