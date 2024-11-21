@@ -1,4 +1,5 @@
-(defpackage #:fibonacci
+(defpackage #:fibonacci/src/fibonacci
+  (:nicknames #:fibonacci)
   (:use #:cl)
   (:export #:main #:fib))
 (in-package #:fibonacci)
