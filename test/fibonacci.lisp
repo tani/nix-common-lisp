@@ -1,6 +1,6 @@
-(defpackage #:fibonacci/test/fibonacci
-  (:use #:cl #:fiveam #:fibonacci/src/fibonacci))
-(in-package #:fibonacci/test/fibonacci)
+(defpackage #:fibonacci-test
+  (:use #:cl #:fiveam #:fibonacci))
+(in-package #:fibonacci-test)
 
 (def-suite :fibonacci)
 (in-suite :fibonacci)

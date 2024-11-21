@@ -21,7 +21,7 @@
       ## Exported systems
       systems = [
         pname
-        "${pname}/test"
+        "${pname}-test"
       ];
       ## Dependencies
       lispLibs = lisp: with lisp.pkgs; [
@@ -69,26 +69,24 @@
           lispLibs = lispLibs pkg;
         };
         lisp = pkg.withPackages (ps: [mainLib]);
-        mainExe = pkgs.stdenv.mkDerivation {
-          inherit pname version src;
-          meta.mainProgram = pname;
-          dontStrip = true;
-          buildPhase = ''
-            export HOME=$TMPDIR
-            export CL_BUILD_PATHNAME=`realpath -s --relative-to=$src $TMPDIR/${pname}_raw`
-            export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
-            ${mainCmd lisp}
-          '';
-          installPhase = ''
-            install -D $CL_BUILD_PATHNAME $out/bin/${pname}_raw
-            cat > $out/bin/${pname} <<-EOF
-              #!/bin/sh
+        mainExe =
+          let
+            mainRaw = pkgs.stdenv.mkDerivation {
+              inherit pname version src;
+              meta.mainProgram = pname;
+              dontStrip = true;
+              installPhase = ''
+                export HOME=$TMPDIR
+                export CL_BUILD_PATHNAME=`realpath -s --relative-to=$src $out/bin/${pname}`
+                export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
+                ${mainCmd lisp}
+              '';
+            };
+          in
+            pkgs.writeShellScriptBin pname ''
               export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
-              exec $out/bin/${pname}_raw "\$@"
-            EOF
-            chmod +x $out/bin/${pname}
-          '';
-        };
+              exec ${mainRaw}/bin/${pname} "$@"
+            '';
         testExe = pkgs.writeShellScriptBin "${pname}-test" ''
           export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
           ${testCmd lisp}
@@ -99,14 +97,15 @@
           lisp = pkgs.sbcl.withPackages (ps: lispLibs pkgs.sbcl);
           program = pkgs.writeShellScriptBin "${pname}-coverage" ''
             export CL_SOURCE_REGISTRY=$PWD
-            ${lisp}/bin/sbcl --noinform --non-interactive \
-              --eval '(require :asdf)' \
-              --eval '(require :sb-cover)' \
-              --eval '(declaim (optimize sb-cover:store-coverage-data))' \
-              --eval '(asdf:compile-system :fibonacci :force t)' \
-              --eval '(declaim (optimize (sb-cover:store-coverage-data 0)))' \
-              --eval '(asdf:test-system :${pname})' \
-              --eval '(sb-cover:report "coverage/")'
+            ${lisp}/bin/sbcl --noinform --disable-debugger <<EOF
+              (require :asdf)
+              (require :sb-cover)
+              (declaim (optimize sb-cover:store-coverage-data))
+              (asdf:compile-system :fibonacci :force t)
+              (declaim (optimize (sb-cover:store-coverage-data 0)))
+              (asdf:test-system :${pname})
+              (sb-cover:report "coverage/")
+            EOF
           '';
         in
           {
@@ -144,10 +143,21 @@
           mainCmd = lisp: "${lisp}/bin/clasp --noinform --eval '(require :asdf)' --eval '(asdf:load-system :${pname})' --eval '(${pname}:main)' --eval '(quit)'";
           testCmd = lisp: "${lisp}/bin/clasp --noinform --eval '(require :asdf)' --eval '(asdf:test-system :${pname})'";
         };
-        ecl = nonBundledPackage {
+        ecl = bundledPackage {
           pkg = pkgs.ecl;
-          mainCmd = lisp: "${lisp}/bin/ecl --eval '(require :asdf)' --eval '(asdf:load-system :${pname})' --eval '(${pname}:main)' --eval '(quit)'";
-          testCmd = lisp: "${lisp}/bin/ecl --eval '(require :asdf)' --eval '(asdf:test-system :${pname})'";
+          mainCmd = lisp: ''
+            ${lisp}/bin/ecl <<EOF
+              (require :asdf)
+              (asdf:load-system :${pname})
+              (asdf:make-build :${pname}
+                :type :program
+                :move-here #P"./"
+                :prologue-code (quote (require :asdf))
+                :epilogue-code (quote (progn (${pname}:main) (quit))))
+            EOF
+            install -D ./${pname} $out/bin/${pname}
+          '';
+          testCmd = lisp: "${lisp}/bin/ecl --eval '(require :asdf)' --eval '(asdf:test-system :${pname})' --eval '(quit)'";
         };
         mkcl = nonBundledPackage {
           pkg = pkgs.mkcl;

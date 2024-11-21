@@ -1,8 +1,7 @@
-(defpackage #:fibonacci/src/fibonacci
-  (:nicknames #:fibonacci)
+(defpackage #:fibonacci
   (:use #:cl)
   (:export #:main #:fib))
-(in-package #:fibonacci/src/fibonacci)
+(in-package #:fibonacci)
 
 (defun fib (n)
   (if (<= n 2)
@@ -10,7 +9,9 @@
     (+ (fib (- n 2)) (fib (- n 1)))))
 
 (defun main ()
-  (format t "args: ~{~a~^ ~}~%" uiop:*command-line-arguments*)
-  (let ((n (parse-integer (first uiop:*command-line-arguments*))))
-    (format t "fib(~a) = ~a~%" n (fib n))
-    (uiop:quit 0)))
+  (let ((args #-ecl (uiop:command-line-arguments)
+              #+ecl (cdr (uiop:raw-command-line-arguments))))
+    (format t "args: ~{~a~^ ~}~%" args)
+    (let ((n (parse-integer (first args))))
+      (format t "fib(~a) = ~a~%" n (fib n))
+      (uiop:quit 0))))
