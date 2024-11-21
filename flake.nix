@@ -94,6 +94,25 @@
           ${testCmd lisp}
         '';
       };
+      coverage-sbcl =
+        let
+          lisp = pkgs.sbcl.withPackages (ps: lispLibs pkgs.sbcl);
+          program = pkgs.writeShellScriptBin "${pname}-coverage" ''
+            export CL_SOURCE_REGISTRY=$PWD
+            ${lisp}/bin/sbcl --noinform --non-interactive \
+              --eval '(require :asdf)' \
+              --eval '(require :sb-cover)' \
+              --eval '(declaim (optimize sb-cover:store-coverage-data))' \
+              --eval '(asdf:compile-system :fibonacci :force t)' \
+              --eval '(declaim (optimize (sb-cover:store-coverage-data 0)))' \
+              --eval '(asdf:test-system :${pname})' \
+              --eval '(sb-cover:report "coverage/")'
+          '';
+        in
+          {
+            type = "app";
+            inherit program;
+          };
       recipe = {
         sbcl = bundledPackage {
           pkg = pkgs.sbcl;
@@ -161,7 +180,8 @@
         packages = builtins.map devPackages availableLispImpls;
       };
       packages = builtins.listToAttrs (builtins.concatMap packages availableLispImpls);
-      apps = builtins.listToAttrs (builtins.concatMap apps availableLispImpls);
+      apps = builtins.listToAttrs (builtins.concatMap apps availableLispImpls) //
+      (if isAvailable "sbcl" then { inherit coverage-sbcl; } else {});
     };
   };
 }

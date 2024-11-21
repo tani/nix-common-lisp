@@ -42,6 +42,12 @@ We use [FiveAM](https://github.com/lispci/fiveam) for testing.
 - `.#test-cmucl_binary`: Run all tests using CMUCL.
 - `.#main-clasp-common-lisp`: Run all tests using Clasp.
 
+#### Code coverage
+
+You can also run the test with code coverage using the following command:
+
+- `.#coverage-sbcl`: Run all tests with code coverage using SBCL.
+
 ### Run REPL
 
 You can run a REPL with the following command:
