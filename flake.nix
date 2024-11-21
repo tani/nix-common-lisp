@@ -155,7 +155,7 @@
         clisp = unbundledPackage {
           pkg = pkgs.clisp;
           cmd = lisp: code: ''
-            ${lisp}/bin/clisp --quiet -x '(require :asdf)' -x "$(cat <<EOF
+            ${lisp}/bin/clisp --quiet -x '(require "asdf")' -x "$(cat <<EOF
               ${code}
             EOF
             )" -- "$@"
