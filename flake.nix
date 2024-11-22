@@ -172,7 +172,7 @@
         mkcl = unbundledPackage {
           lisp = pkgs.mkcl;
           evalFlag =  "-eval";
-          extraArgs = "--queit";
+          extraArgs = "--quiet";
         };
       };
       apps = impl: [
