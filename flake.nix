@@ -5,28 +5,12 @@
     flake-parts.url = "github:hercules-ci/flake-parts";
   };
   outputs = inputs @ { nixpkgs, flake-parts, ... }:
-  let
-    # This is a workaround for https://github.com/NixOS/nixpkgs/pull/358036
-    patch = flake-parts.lib.mkFlake { inherit inputs; } {
-      imports = [
-        flake-parts.flakeModules.easyOverlay
-      ];
-      systems = nixpkgs.lib.platforms.all;
-      perSystem = { pkgs, ... }: {
-        overlayAttrs = {
-          ccl = pkgs.lib.recursiveUpdate pkgs.ccl { meta.mainProgram = "ccl"; };
-          mkcl = pkgs.lib.recursiveUpdate pkgs.mkcl { meta.mainProgram = "mkcl"; };
-          cmucl_binary = pkgs.lib.recursiveUpdate pkgs.cmucl_binary { meta.mainProgram = "lisp"; };
-        };
-      };
-    };
-  in
   flake-parts.lib.mkFlake { inherit inputs; } {
     imports = [
       flake-parts.flakeModules.easyOverlay
     ];
     systems = nixpkgs.lib.platforms.all;
-    perSystem = { config, pkgs, system, ... }: let
+    perSystem = { config, pkgs, lib, system, ... }: let
       ############ Settings ############
       ## Project name
       pname = "fibonacci";
@@ -211,9 +195,12 @@
       _module.args.pkgs = import inputs.nixpkgs {
         inherit system;
         overlays = [
-          patch.overlays.default
+          (_: final: {
+            ccl = lib.recursiveUpdate final.ccl { meta.mainProgram = "ccl"; };
+            mkcl = lib.recursiveUpdate final.mkcl { meta.mainProgram = "mkcl"; };
+            cmucl_binary = lib.recursiveUpdate final.cmucl_binary { meta.mainProgram = "lisp"; };
+          })
         ];
-        config = { };
       };
       overlayAttrs = builtins.listToAttrs (builtins.map overlays availableLispImpls);
       devShells.default = pkgs.mkShell {
