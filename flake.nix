@@ -137,7 +137,7 @@
         sbcl = bundledPackage {
           inputs.lisp = pkgs.sbcl;
           outputs = { lisp, code }: ''
-            ${lisp}/bin/ccl --noinform --disable-debugger --eval '(require "asdf")' --eval "$(cat <<EOF
+            ${lisp}/bin/${lisp.meta.mainProgram} --noinform --disable-debugger --eval '(require "asdf")' --eval "$(cat <<EOF
               ${code}
             EOF
             )" -- "$@"
@@ -146,7 +146,7 @@
         ccl = bundledPackage {
           inputs.lisp = pkgs.ccl;
           outputs = { lisp, code }: ''
-            ${lisp}/bin/${lisp.meta.mainProgram} --quiet --eval '$(require "asdf")' --eval "$(cat <<EOF
+            ${lisp}/bin/ccl --quiet --eval '$(require "asdf")' --eval "$(cat <<EOF
               ${code}
             EOF
             )" -- "$@"
