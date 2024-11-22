@@ -48,12 +48,12 @@
         && (!lisp.meta.broken);
       availableLispImpls = builtins.filter isAvailable lispImpls;
       LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath nativeLibs;
-      unbundledPackage = { pkg, cmd }: rec {
-        mainLib = pkg.buildASDFSystem {
+      unbundledPackage = { inputs, outputs }: rec {
+        mainLib = inputs.lisp.buildASDFSystem {
           inherit pname version src systems nativeLibs;
-          lispLibs = lispLibs pkg;
+          lispLibs = lispLibs inputs.lisp;
         };
-        lisp = pkg.withPackages (ps: [mainLib]);
+        lisp = inputs.lisp.withPackages (ps: [mainLib]) // { inherit (inputs.lisp) meta; };
         mainCode = ''
           (let* ((_ (asdf:load-system :${pname}))
                  (component (asdf:find-system :${pname}))
@@ -64,7 +64,7 @@
         '';
         mainExe = pkgs.writeShellScriptBin pname ''
           export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
-          exec ${cmd lisp mainCode}
+          exec ${outputs { inherit lisp; code = mainCode; }}
         '';
         testCode = ''
         (progn
@@ -73,15 +73,15 @@
         '';
         testExe = pkgs.writeShellScriptBin "${pname}-test" ''
           export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
-          exec ${cmd lisp testCode}
+          exec ${outputs { inherit lisp; code = testCode; }}
         '';
       };
-      bundledPackage = { pkg, cmd }: rec {
-        mainLib = pkg.buildASDFSystem {
+      bundledPackage = { inputs, outputs }: rec {
+        mainLib = inputs.lisp.buildASDFSystem {
           inherit pname version src systems nativeLibs;
-          lispLibs = lispLibs pkg;
+          lispLibs = lispLibs inputs.lisp;
         };
-        lisp = pkg.withPackages (ps: [mainLib]);
+        lisp = inputs.lisp.withPackages (ps: [mainLib]) // { inherit (inputs.lisp) meta; };
         mainCode = ''
           (let ((system (asdf:find-system :${pname})))
             (setf (asdf/system:component-build-pathname system) #p"$out/bin/${pname}")
@@ -95,7 +95,7 @@
           installPhase = ''
             export HOME=$TMPDIR
             export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
-            ${cmd lisp mainCode}
+            ${outputs { inherit lisp; code = mainCode; }}
           '';
         };
         mainExe =
@@ -110,16 +110,16 @@
         '';
         testExe = pkgs.writeShellScriptBin "${pname}-test" ''
           export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
-          ${cmd lisp testCode}
+          ${outputs { inherit lisp; code = testCode; }}
         '';
       };
       coverage-sbcl =
         let
-          lisp = pkgs.sbcl.withPackages (ps: lispLibs pkgs.sbcl);
+          lisp = pkgs.sbcl.withPackages (ps: lispLibs pkgs.sbcl) // { inherit (pkgs.sbcl) meta; };
           program = pkgs.writeShellScriptBin "${pname}-coverage" ''
             export CL_SOURCE_REGISTRY=$PWD
-            ${lisp}/bin/sbcl --noinform --disable-debugger <<EOF
-              (require :asdf)
+            ${lisp}/bin/${lisp.meta.mainProgram} --noinform --disable-debugger <<EOF
+              (require "asdf")
               (require :sb-cover)
               (declaim (optimize sb-cover:store-coverage-data))
               (asdf:compile-system :fibonacci :force t)
@@ -135,72 +135,72 @@
           };
       recipe = {
         sbcl = bundledPackage {
-          pkg = pkgs.sbcl;
-          cmd = lisp: code: ''
-            ${lisp}/bin/sbcl --noinform --disable-debugger --eval '(require :asdf)' --eval "$(cat <<EOF
+          inputs.lisp = pkgs.sbcl;
+          outputs = { lisp, code }: ''
+            ${lisp}/bin/${lisp.meta.mainProgram} --noinform --disable-debugger --eval '(require "asdf")' --eval "$(cat <<EOF
               ${code}
             EOF
             )" -- "$@"
           '';
         };
         ccl = bundledPackage {
-          pkg = pkgs.ccl;
-          cmd = lisp: code: ''
-            ${lisp}/bin/ccl --quiet --eval '$(require :asdf)' --eval "$(cat <<EOF
+          inputs.lisp = pkgs.ccl;
+          outputs = { lisp, code }: ''
+            ${lisp}/bin/${lisp.meta.mainProgram} --quiet --eval '$(require "asdf")' --eval "$(cat <<EOF
               ${code}
             EOF
             )" -- "$@"
           '';
         };
         clisp = unbundledPackage {
-          pkg = pkgs.clisp;
-          cmd = lisp: code: ''
-            ${lisp}/bin/clisp --quiet -x '(require "asdf")' -x "$(cat <<EOF
+          inputs.lisp = pkgs.clisp;
+          outputs = { lisp, code }: ''
+            ${lisp}/bin/${lisp.meta.mainProgram} --quiet -x '(require "asdf")' -x "$(cat <<EOF
               ${code}
             EOF
             )" -- "$@"
           '';
         };
         ecl = unbundledPackage {
-          pkg = pkgs.ecl;
-          cmd = lisp: code: ''
-            ${lisp}/bin/ecl --eval '(require :asdf)' --eval "$(cat <<EOF
+          inputs.lisp = pkgs.ecl;
+          outputs = { lisp, code }: ''
+            ${lisp}/bin/${lisp.meta.mainProgram} --eval '(require "asdf")' --eval "$(cat <<EOF
               ${code}
             EOF
             )" -- "$@"
           '';
         };
         cmucl_binary = unbundledPackage {
-          pkg = pkgs.cmucl_binary;
-          cmd = lisp: code: ''
-            ${lisp}/bin/lisp -quiet -eval '(require :asdf)' -eval "$(cat <<EOF
+          inputs.lisp = pkgs.cmucl_binary;
+          outputs = { lisp, code }: ''
+            ${lisp}/bin/${lisp.meta.mainProgram} -quiet -eval '(require "asdf")' -eval "$(cat <<EOF
               ${code}
             EOF
             )" -- "$@"
           '';
         };
         abcl = unbundledPackage {
-          pkg = pkgs.abcl;
-          cmd = lisp: code: ''
-            ${lisp}/bin/abcl --noinform --eval '(require :asdf)' --eval "$(cat <<EOF
+          inputs.lisp = pkgs.abcl;
+          outputs = { lisp, code }: ''
+            ${lisp}/bin/${lisp.meta.mainProgram} --noinform --eval '(require "asdf")' --eval "$(cat <<EOF
               ${code}
             EOF
             )" -- "$@"
           '';
         };
         clasp-common-lisp = unbundledPackage {
-          pkg = pkgs.clasp-common-lisp;
-          cmd = lisp: code: ''
-            ${lisp}/bin/clasp --noinform --eval '(require :asdf)' --eval "$(cat <<EOF
+          inputs.lisp = pkgs.clasp-common-lisp;
+          outputs = { lisp, code }: ''
+            ${lisp}/bin/${lisp.meta.mainProgram} --noinform --eval '(require "asdf")' --eval "$(cat <<EOF
               ${code}
             EOF
             )" -- "$@"
           '';
         };
         mkcl = unbundledPackage {
-          pkg = pkgs.mkcl;
-          cmd = lisp: code: ''
-            ${lisp}/bin/mkcl --quiet -eval '(require :asdf)' -eval "$(cat <<EOF
+          inputs.lisp = pkgs.mkcl;
+          outputs = { lisp, code }: ''
+            ${lisp}/bin/${lisp.meta.mainProgram} --quiet -eval '(require "asdf")' -eval "$(cat <<EOF
               ${code}
             EOF
             )" -- "$@"
