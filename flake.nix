@@ -4,13 +4,13 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
     flake-parts.url = "github:hercules-ci/flake-parts";
   };
-  outputs = inputs @ { self, nixpkgs, flake-parts, systems }:
+  outputs = inputs @ { nixpkgs, flake-parts, ... }:
   flake-parts.lib.mkFlake { inherit inputs; } {
     imports = [
       flake-parts.flakeModules.easyOverlay
     ];
     systems = nixpkgs.lib.platforms.all;
-    perSystem = { config, pkgs, system, final, ... }: let
+    perSystem = { config, pkgs, system, ... }: let
       ############ Settings ############
       ## Project name
       pname = "fibonacci";
