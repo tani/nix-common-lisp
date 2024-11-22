@@ -137,7 +137,7 @@
         sbcl = bundledPackage {
           inputs.lisp = pkgs.sbcl;
           outputs = { lisp, code }: ''
-            ${lisp}/bin/${lisp.meta.mainProgram} --noinform --disable-debugger --eval '(require "asdf")' --eval "$(cat <<EOF
+            ${lisp}/bin/ccl --noinform --disable-debugger --eval '(require "asdf")' --eval "$(cat <<EOF
               ${code}
             EOF
             )" -- "$@"
@@ -173,7 +173,7 @@
         cmucl_binary = unbundledPackage {
           inputs.lisp = pkgs.cmucl_binary;
           outputs = { lisp, code }: ''
-            ${lisp}/bin/${lisp.meta.mainProgram} -quiet -eval '(require "asdf")' -eval "$(cat <<EOF
+            ${lisp}/bin/lisp -quiet -eval '(require "asdf")' -eval "$(cat <<EOF
               ${code}
             EOF
             )" -- "$@"
@@ -200,7 +200,7 @@
         mkcl = unbundledPackage {
           inputs.lisp = pkgs.mkcl;
           outputs = { lisp, code }: ''
-            ${lisp}/bin/${lisp.meta.mainProgram} --quiet -eval '(require "asdf")' -eval "$(cat <<EOF
+            ${lisp}/bin/mkcl --quiet -eval '(require "asdf")' -eval "$(cat <<EOF
               ${code}
             EOF
             )" -- "$@"
