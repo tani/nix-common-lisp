@@ -15,8 +15,6 @@
           pname = "fibonacci";
           ## Source directory
           src = ./.;
-          ## Exported systems
-          systems = [ pname "${pname}/test" ];
           ## Dependencies
           lispLibs = lisp: with lisp.pkgs; [ fiveam ];
           ## Non-Lisp dependencies
@@ -33,12 +31,20 @@
             "clasp-common-lisp"
           ];
           ##################################
+          systems = let
+            asd = builtins.readFile "${src}/${pname}.asd";
+            res = builtins.split ''defsystem[[:space:]]*([^[:space:]]*)'' asd;
+            odd = n: lib.trivial.mod n 2 == 1;
+            sys1 = lib.lists.flatten (lib.lists.ifilter0 (i: v: odd i) res);
+            sys2 = builtins.map (s: builtins.replaceStrings [''"'' "#:" ":"] ["" "" ""] s) sys1;
+          in sys2;
           version = let
             asd = builtins.readFile "${src}/${pname}.asd";
-            res = builtins.split '':version[[:space:]]*"([^"]*)"'' asd;
+            res = builtins.split '':version[[:space:]]*([^[:space:]]*)'' asd;
             odd = n: lib.trivial.mod n 2 == 1;
-            vers = lib.lists.flatten (lib.lists.ifilter0 (i: v: odd i) res);
-          in builtins.elemAt vers 0;
+            vers1 = lib.lists.flatten (lib.lists.ifilter0 (i: v: odd i) res);
+            vers2 = builtins.map (s: builtins.replaceStrings [''"''] [""] s) vers1;
+          in builtins.elemAt vers2 0;
           isAvailable = impl:
             let lisp = pkgs.${impl};
             in (builtins.tryEval lisp).success

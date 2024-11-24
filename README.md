@@ -133,8 +133,7 @@ vim ./rename.sh # Edit the project name
 ./rename.sh
 ```
 
-Then, you might update the dependency (`lispLibs`)
-and version (`version`) of the project in the `flake.nix` file.
+Then, you might update the dependency (`lispLibs`).
 
 Now you can start developing your project.
 Note that this project uses _package-inferred-system_.
