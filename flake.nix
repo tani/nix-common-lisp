@@ -38,13 +38,14 @@
             sys1 = lib.lists.flatten (lib.lists.ifilter0 (i: v: odd i) res);
             sys2 = builtins.map (s: builtins.replaceStrings [''"'' "#:" ":"] ["" "" ""] s) sys1;
           in sys2;
-          version = let
+          versions = let
             asd = builtins.readFile "${src}/${pname}.asd";
             res = builtins.split '':version[[:space:]]*([^[:space:]]*)'' asd;
             odd = n: lib.trivial.mod n 2 == 1;
-            vers1 = lib.lists.flatten (lib.lists.ifilter0 (i: v: odd i) res);
-            vers2 = builtins.map (s: builtins.replaceStrings [''"''] [""] s) vers1;
-          in builtins.elemAt vers2 0;
+            ver1 = lib.lists.flatten (lib.lists.ifilter0 (i: v: odd i) res);
+            ver2 = builtins.map (s: builtins.replaceStrings [''"''] [""] s) ver1;
+          in ver2;
+          version = builtins.head versions;
           isAvailable = impl:
             let lisp = pkgs.${impl};
             in (builtins.tryEval lisp).success
