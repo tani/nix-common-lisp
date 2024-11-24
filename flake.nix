@@ -36,8 +36,8 @@
           version = let
             asd = builtins.readFile "${src}/${pname}.asd";
             res = builtins.split '':version[[:space:]]*"([^"]*)"'' asd;
-            vers = lib.lists.flatten
-              (lib.lists.ifilter0 (i: v: lib.trivial.mod i 2 == 1) res);
+            odd = n: lib.trivial.mod n 2 == 1;
+            vers = lib.lists.flatten (lib.lists.ifilter0 (i: v: odd i) res);
           in builtins.elemAt vers 0;
           isAvailable = impl:
             let lisp = pkgs.${impl};
