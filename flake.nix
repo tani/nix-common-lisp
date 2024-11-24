@@ -14,8 +14,6 @@
       ############ Settings ############
       ## Project name
       pname = "fibonacci";
-      ## Project version
-      version = "0.0.0";
       ## Source directory
       src = ./.;
       ## Exported systems
@@ -42,6 +40,12 @@
         "clasp-common-lisp"
       ];
       ##################################
+      version = let
+        asd = builtins.readFile "${src}/${pname}.asd";
+        res = builtins.split '':version[[:space:]]*"([^"]*)"'' asd;
+        vers = lib.lists.flatten (lib.lists.ifilter0 (i: v: lib.trivial.mod i 2 == 1) res);
+      in
+        builtins.elemAt vers 0;
       isAvailable = impl: let lisp = pkgs.${impl}; in
         (builtins.tryEval lisp).success
         && (builtins.elem system lisp.meta.platforms)
