@@ -217,21 +217,6 @@
             "${pname}-${impl}" = config.packages."main-${impl}";
           };
         in {
-          # This is a workaround for https://github.com/NixOS/nixpkgs/pull/358036
-          _module.args.pkgs = import inputs.nixpkgs {
-            inherit system;
-            overlays = [
-              (_: final: {
-                ccl =
-                  lib.recursiveUpdate final.ccl { meta.mainProgram = "ccl"; };
-                mkcl =
-                  lib.recursiveUpdate final.mkcl { meta.mainProgram = "mkcl"; };
-                cmucl_binary = lib.recursiveUpdate final.cmucl_binary {
-                  meta.mainProgram = "lisp";
-                };
-              })
-            ];
-          };
           overlayAttrs =
             builtins.listToAttrs (builtins.map overlays availableLispImpls);
           devShells.default = pkgs.mkShell {
