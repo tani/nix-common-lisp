@@ -6,4 +6,4 @@
 (in-suite :fibonacci)
 
 (test fib-test
-  (is (fib 10) 55))
+  (is (= (fib 10) 55)))
