@@ -132,7 +132,7 @@
                 (require "asdf")
                 (require :sb-cover)
                 (declaim (optimize sb-cover:store-coverage-data))
-                (asdf:compile-system :fibonacci :force t)
+                (asdf:compile-system :${pname} :force t)
                 (declaim (optimize (sb-cover:store-coverage-data 0)))
                 (asdf:test-system :${pname})
                 (sb-cover:report "coverage/")
