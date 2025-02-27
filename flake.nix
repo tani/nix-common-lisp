@@ -216,14 +216,22 @@
           ];
           devPackages = impl:
             pkgs.${impl}.withPackages (ps: lispLibs pkgs.${impl});
-          overlays = impl: {
-            ${impl} = pkgs.${impl}.withOverrides
-              (self: super: { ${pname} = config.packages."lib-${impl}"; });
-            "${pname}-${impl}" = config.packages."main-${impl}";
-          };
+          overlays = impl: [
+            {
+              name = impl;
+              value = pkgs.${impl}.withOverrides
+                (self: super: {
+                  ${pname} = config.packages."lib-${impl}";
+                });
+            }
+            {
+              name = "${pname}-${impl}";
+              value = config.packages."main-${impl}";
+            }
+          ];
         in {
           overlayAttrs =
-            builtins.listToAttrs (builtins.map overlays availableLispImpls);
+            builtins.listToAttrs (builtins.concatMap overlays availableLispImpls);
           devShells.default = pkgs.mkShell {
             inherit LD_LIBRARY_PATH;
             shellHook = ''
