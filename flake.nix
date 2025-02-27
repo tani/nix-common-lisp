@@ -47,10 +47,15 @@
           in ver2;
           version = builtins.head versions;
           isAvailable = impl:
-            let lisp = pkgs.${impl};
+            let
+              basePkgs = import nixpkgs {
+                inherit system;
+                overlays = [];
+              };
+              lisp = basePkgs.${impl};
             in (builtins.tryEval lisp).success
-            && (builtins.elem system lisp.meta.platforms)
-            && (!lisp.meta.broken);
+               && (builtins.elem system lisp.meta.platforms)
+               && (!lisp.meta.broken);
           availableLispImpls = builtins.filter isAvailable lispImpls;
           LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath nativeLibs;
           unbundledPackage = { lisp, evalFlag, extraArgs }: rec {
