@@ -46,16 +46,12 @@
             ver2 = builtins.map (s: builtins.replaceStrings [''"''] [""] s) ver1;
           in ver2;
           version = builtins.head versions;
-          isAvailable = impl:
-            let
-              basePkgs = import nixpkgs {
-                inherit system;
-                overlays = [];
-              };
-              lisp = basePkgs.${impl};
-            in (builtins.tryEval lisp).success
-               && (builtins.elem system lisp.meta.platforms)
-               && (!lisp.meta.broken);
+          isAvailable = impl: let
+            basePkgs = import nixpkgs { inherit system; overlays = []; };
+            lisp = basePkgs.${impl};
+          in (builtins.tryEval lisp).success
+             && (builtins.elem system lisp.meta.platforms)
+             && (!lisp.meta.broken);
           availableLispImpls = builtins.filter isAvailable lispImpls;
           LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath nativeLibs;
           unbundledPackage = { lisp, evalFlag, extraArgs }: rec {
@@ -220,9 +216,7 @@
             {
               name = impl;
               value = pkgs.${impl}.withOverrides
-                (self: super: {
-                  ${pname} = config.packages."lib-${impl}";
-                });
+                (self: super: { ${pname} = config.packages."lib-${impl}"; });
             }
             {
               name = "${pname}-${impl}";
