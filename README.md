@@ -111,17 +111,38 @@ This project exports the overlay.
 
 To use the overlay,
 
-```nix
-let
-  pkgs = import nixpkgs {
-    inherit system;
-    overlays = [
-      fibonacci.overlays.default
-    ];
+- nix flakes without any frameworks
+  ```nix
+  let
+      pkgs = import nixpkgs {
+        inherit system;
+        overlays = [
+          fibonacci.overlays.default
+        ];
+      };
+  ```
+- [flake-parts](https://flake.parts/overlays.html?highlight=overlays#consuming-an-overlay)
+  ```nix
+  inputs = {
+    nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
+    flake-parts.url = "github:hercules-ci/flake-parts";
+    papyrus = {
+      url = "github:tani/papyrus";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
-in
-  # You can use packages such as pkgs.fibonacci-sbcl
-```
+  ```
+  ```nix
+    perSystem = { system, ... }: {
+      _module.args.pkgs = import inputs.nixpkgs {
+        inherit system;
+        overlays = [
+          inputs.papyrus.overlays.default
+        ];
+        config = { };
+      };
+    };
+  ```
 
 ## Development
 
